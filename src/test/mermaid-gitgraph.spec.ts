@@ -292,6 +292,25 @@ test('processCharts should preserve gitGraph rendering quality', async (t) => {
 	}
 });
 
+test('processCharts should generate high-resolution gitGraph images', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# High Res Test\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n    commit id: "Feature A"\n    branch develop\n    checkout develop\n    commit id: "Dev Work 1"\n    commit id: "Dev Work 2"\n    checkout main\n    merge develop\n    commit id: "Release"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9019);
+
+	t.is(result.imageFiles.length, 1);
+	
+	// Verify image is high resolution (larger file size due to 2x device scale factor)
+	const stats = await fs.stat(result.imageFiles[0]!);
+	// High-res images should be significantly larger than low-res
+	// With 2x scale factor, image should be at least 2-4KB for a simple diagram
+	t.true(stats.size > 2000, `Image size ${stats.size} bytes should be > 2000 bytes for high-res`);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
 test('processCharts should handle gitGraph with sequential operations', async (t) => {
 	const processor = new MermaidProcessorService();
 	const markdown = `# Sequential\n\n\`\`\`mermaid\ngitGraph\n    commit id: "1"\n    commit id: "2"\n    commit id: "3"\n    commit id: "4"\n    commit id: "5"\n\`\`\`\n\nDone.`;

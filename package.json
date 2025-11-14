@@ -62,7 +62,8 @@
     "marked": "^4.3.0",
     "puppeteer": "^24.30.0",
     "semver": "^7.7.3",
-    "serve-handler": "^6.1.6"
+    "serve-handler": "^6.1.6",
+    "html-docx-js-typescript": "^0.1.5"
   },
   "devDependencies": {
     "@types/listr": "^0.14.10",

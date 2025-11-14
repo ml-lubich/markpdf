@@ -25,7 +25,7 @@ export class ConfigService implements IConfigService {
 	 * @returns Merged configuration
 	 */
 	public mergeConfigs(...configs: Array<Partial<Config>>): Config {
-		let merged: Config = { ...defaultConfig };
+		let merged: any = { ...defaultConfig };
 
 		for (const config of configs) {
 			merged = {
@@ -38,11 +38,26 @@ export class ConfigService implements IConfigService {
 			};
 		}
 
+		// Ensure as_html and as_docx are properly set (mutually exclusive)
+		if (merged.as_docx === true) {
+			merged.as_html = false;
+		} else if (merged.as_html === true) {
+			merged.as_docx = false;
+		} else {
+			merged.as_html = false;
+			merged.as_docx = false;
+		}
+
+		// Ensure pdf_options is always defined
+		if (!merged.pdf_options) {
+			merged.pdf_options = { ...defaultConfig.pdf_options };
+		}
+
 		// Sanitize array options
 		const arrayOptions = ['body_class', 'script', 'stylesheet'] as const;
 		for (const option of arrayOptions) {
 			if (!Array.isArray(merged[option])) {
-				(merged as any)[option] = [merged[option]].filter(Boolean);
+				merged[option] = [merged[option]].filter(Boolean);
 			}
 		}
 
@@ -59,7 +74,7 @@ export class ConfigService implements IConfigService {
 			merged.pdf_options.displayHeaderFooter = false;
 		}
 
-		return merged;
+		return merged as Config;
 	}
 
 	/**

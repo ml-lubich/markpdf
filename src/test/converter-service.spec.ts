@@ -93,6 +93,25 @@ test('ConverterService should convert to HTML when as_html is true', async (t) =
 	}
 });
 
+test('ConverterService should convert to DOCX when as_docx is true', async (t) => {
+	const converter = createConverterService();
+	const config = { ...defaultConfig, port: getNextPort(), as_docx: true };
+	await serverService.start(config);
+
+	try {
+		const result = await converter.convert({ content: '# Test Document\n\nThis is a test paragraph.' }, config, browser);
+
+		t.truthy(result);
+		t.truthy(result.content instanceof Buffer);
+		t.true(result.content.length > 0);
+		// DOCX files should start with PK (ZIP file signature)
+		const header = result.content.slice(0, 2).toString('hex');
+		t.is(header, '504b', 'DOCX file should start with ZIP signature (PK)');
+	} finally {
+		await serverService.stop();
+	}
+});
+
 // ============================================================================
 // Error Handling Tests - Negative Tests
 // ============================================================================

@@ -29,6 +29,13 @@ export const MERMAID_CONSTANTS = {
 	CHART_PADDING_PX: 40,
 
 	/**
+	 * Device scale factor for high-resolution screenshots.
+	 * 2 = 2x resolution (Retina), 3 = 3x resolution (Super Retina)
+	 * Higher values produce sharper images but larger file sizes.
+	 */
+	DEVICE_SCALE_FACTOR: 2,
+
+	/**
 	 * Temporary directory name for Mermaid images.
 	 */
 	TEMP_DIR_NAME: 'mdpdf-mermaid-images',

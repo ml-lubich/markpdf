@@ -142,9 +142,11 @@ export class MermaidProcessorService implements IMermaidProcessor {
 				throw new Error('Could not find rendered Mermaid SVG element');
 			}
 
+			// Set viewport with device scale factor for high-resolution screenshots
 			await page.setViewport({
 				width: Math.ceil(dimensions.width) + MERMAID_CONSTANTS.CHART_PADDING_PX,
 				height: Math.ceil(dimensions.height) + MERMAID_CONSTANTS.CHART_PADDING_PX,
+				deviceScaleFactor: MERMAID_CONSTANTS.DEVICE_SCALE_FACTOR,
 			});
 
 			// Use content hash for filename to ensure uniqueness across parallel processes
@@ -156,6 +158,7 @@ export class MermaidProcessorService implements IMermaidProcessor {
 				throw new Error('Mermaid element not found for screenshot');
 			}
 
+			// Take high-resolution screenshot
 			await mermaidElement.screenshot({
 				path: temporaryImagePath,
 				type: 'png',

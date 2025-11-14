@@ -39,6 +39,7 @@ const helpText = `
     --md-file-encoding ${chalk.dim('.......')} Set the file encoding for the markdown file
     --stylesheet-encoding ${chalk.dim('....')} Set the file encoding for the stylesheet
     --as-html ${chalk.dim('................')} Output as HTML instead
+    --as-docx ${chalk.dim('................')} Output as DOCX (Word) instead
     --config-file ${chalk.dim('............')} Path to a JSON or JS configuration file
     --devtools ${chalk.dim('...............')} Open the browser with devtools instead of creating PDF
 
@@ -83,6 +84,10 @@ const helpText = `
   ${chalk.gray('–')} Convert file.md but save the intermediate HTML instead
 
     ${chalk.cyan('$ markpdf file.md --as-html')}
+
+  ${chalk.gray('–')} Convert file.md to DOCX (Word) format
+
+    ${chalk.cyan('$ markpdf file.md --as-docx')}
 `;
 
 export const help = (): void => console.log(helpText);

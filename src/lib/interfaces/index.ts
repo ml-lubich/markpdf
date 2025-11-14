@@ -17,7 +17,7 @@ export type MarkdownInput = {
 /**
  * Output result from conversion.
  */
-export type ConversionOutput = PdfConversionOutput | HtmlConversionOutput;
+export type ConversionOutput = PdfConversionOutput | HtmlConversionOutput | DocxConversionOutput;
 
 export type PdfConversionOutput = {
 	readonly filename: string | undefined;
@@ -27,6 +27,11 @@ export type PdfConversionOutput = {
 export type HtmlConversionOutput = {
 	readonly filename: string | undefined;
 	readonly content: string;
+};
+
+export type DocxConversionOutput = {
+	readonly filename: string | undefined;
+	readonly content: Buffer;
 };
 
 /**

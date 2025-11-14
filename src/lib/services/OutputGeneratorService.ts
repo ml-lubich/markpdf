@@ -1,5 +1,5 @@
 /**
- * OutputGeneratorService - Handles PDF and HTML generation.
+ * OutputGeneratorService - Handles PDF, HTML, and DOCX generation.
  * Manages Puppeteer browser instances and page rendering.
  */
 
@@ -9,8 +9,9 @@ import {
 	type ConversionOutput,
 	type PdfConversionOutput,
 	type HtmlConversionOutput,
+	type DocxConversionOutput,
 } from '../interfaces/index.js';
-import { type Config, type HtmlConfig } from '../config.js';
+import { type Config, type HtmlConfig, type DocxConfig } from '../config.js';
 import { isHttpUrl } from '../utils/url.js';
 
 export class OutputGeneratorService implements IOutputGenerator {
@@ -144,7 +145,7 @@ export class OutputGeneratorService implements IOutputGenerator {
 	}
 
 	/**
-	 * Generate the actual output (PDF or HTML).
+	 * Generate the actual output (PDF, HTML, or DOCX).
 	 */
 	private async generateOutput(page: Page, config: Config): Promise<ConversionOutput | undefined> {
 		if (config.devtools) {
@@ -157,9 +158,36 @@ export class OutputGeneratorService implements IOutputGenerator {
 			return { filename: config.dest, content } as HtmlConversionOutput;
 		}
 
+		if (this.isDocxConfig(config)) {
+			const htmlContent = await page.content();
+			const docxBuffer = await this.convertHtmlToDocx(htmlContent);
+			return { filename: config.dest, content: docxBuffer } as DocxConversionOutput;
+		}
+
 		await page.emulateMediaType(config.page_media_type);
 		const pdfBuffer = await page.pdf(config.pdf_options);
 		return { filename: config.dest, content: Buffer.from(pdfBuffer) } as PdfConversionOutput;
+	}
+
+	/**
+	 * Convert HTML content to DOCX format.
+	 */
+	private async convertHtmlToDocx(html: string): Promise<Buffer> {
+		const htmlToDocx = (await import('html-docx-js-typescript')).default;
+		const docxResult = htmlToDocx.asBlob(html);
+		const docxBlob = docxResult instanceof Promise ? await docxResult : docxResult;
+		
+		if (docxBlob instanceof Buffer) {
+			return docxBlob;
+		}
+		
+		if (docxBlob instanceof Blob) {
+			const arrayBuffer = await docxBlob.arrayBuffer();
+			return Buffer.from(arrayBuffer);
+		}
+		
+		// If it's already an ArrayBuffer
+		return Buffer.from(docxBlob as ArrayBuffer);
 	}
 
 	/**
@@ -167,5 +195,12 @@ export class OutputGeneratorService implements IOutputGenerator {
 	 */
 	private isHtmlConfig(config: Config): config is HtmlConfig {
 		return config.as_html;
+	}
+
+	/**
+	 * Type guard for DOCX config.
+	 */
+	private isDocxConfig(config: Config): config is DocxConfig {
+		return config.as_docx;
 	}
 }

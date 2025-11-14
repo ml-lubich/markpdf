@@ -127,7 +127,8 @@ export class ConverterService {
 		const mergedConfig = this.configService.mergeConfigs(config, frontMatter as Partial<Config>);
 
 		// Set output destination
-		mergedConfig.dest ||= input.path ? getOutputFilePath(input.path, mergedConfig.as_html ? 'html' : 'pdf') : 'stdout';
+		const extension = mergedConfig.as_html ? 'html' : mergedConfig.as_docx ? 'docx' : 'pdf';
+		mergedConfig.dest ||= input.path ? getOutputFilePath(input.path, extension) : 'stdout';
 
 		// Add highlight stylesheet
 		this.addHighlightStylesheet(mergedConfig);
