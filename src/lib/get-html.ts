@@ -1,14 +1,7 @@
-import { Config } from './config';
-import { getMarked } from './get-marked-with-highlighter';
-
 /**
- * Generates a HTML document from a markdown string and returns it as a string.
+ * HTML Renderer Re-export
+ * Backward compatibility re-export from new location.
+ * @deprecated Import from './renderers/html' instead
  */
-export const getHtml = (md: string, config: Config) => `<!DOCTYPE html>
-<html>
-	<head><title>${config.document_title}</title><meta charset="utf-8"></head>
-	<body class="${config.body_class.join(' ')}">
-		${getMarked(config.marked_options, config.marked_extensions)(md)}
-	</body>
-</html>
-`;
+
+export * from './renderers/html';

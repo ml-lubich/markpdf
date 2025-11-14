@@ -1,9 +1,9 @@
-import test, { before } from 'ava';
+import test from 'ava';
 import { execSync } from 'child_process';
 import { readFileSync, unlinkSync } from 'fs';
-import { join, resolve } from 'path';
+import { resolve } from 'path';
 
-before(() => {
+test.before(() => {
 	const filesToDelete = [
 		resolve(__dirname, 'basic', 'test.pdf'),
 		resolve(__dirname, 'basic', 'test-stdio.pdf'),
@@ -24,47 +24,36 @@ before(() => {
 });
 
 test('compile the basic example to pdf using --basedir', (t) => {
-	const cmd = [
-		resolve(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node'), // ts-node binary
-		resolve(__dirname, '..', 'cli'), // md-to-pdf cli script (typescript)
-		resolve(__dirname, 'basic', 'test.md'), // file to convert
-		'--basedir',
-		resolve(__dirname, 'basic'),
-	].join(' ');
+	const tsNodePath = resolve(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node');
+	const cliPath = resolve(__dirname, '..', 'cli');
+	const testMdPath = resolve(__dirname, 'basic', 'test.md');
+	const basedirPath = resolve(__dirname, 'basic');
+	const cmd = `"${tsNodePath}" "${cliPath}" "${testMdPath}" --basedir "${basedirPath}"`;
 
-	t.notThrows(() => execSync(cmd));
+	t.notThrows(() => execSync(cmd, { shell: '/bin/sh' }));
 
 	t.notThrows(() => readFileSync(resolve(__dirname, 'basic', 'test.pdf'), 'utf-8'));
 });
 
 test('compile the basic example using stdio', (t) => {
-	const cmd = [
-		'cat',
-		resolve(__dirname, 'basic', 'test.md'), // file to convert
-		'|',
-		resolve(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node'), // ts-node binary
-		resolve(__dirname, '..', 'cli'), // md-to-pdf cli script (typescript)
-		'--basedir',
-		resolve(__dirname, 'basic'),
-		'>',
-		resolve(__dirname, 'basic', 'test-stdio.pdf'),
-	].join(' ');
+	const testMdPath = resolve(__dirname, 'basic', 'test.md');
+	const tsNodePath = resolve(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node');
+	const cliPath = resolve(__dirname, '..', 'cli');
+	const basedirPath = resolve(__dirname, 'basic');
+	const outputPath = resolve(__dirname, 'basic', 'test-stdio.pdf');
+	const cmd = `cat "${testMdPath}" | "${tsNodePath}" "${cliPath}" --basedir "${basedirPath}" > "${outputPath}"`;
 
-	t.notThrows(() => execSync(cmd));
+	t.notThrows(() => execSync(cmd, { shell: '/bin/sh' }));
 
 	t.notThrows(() => readFileSync(resolve(__dirname, 'basic', 'test-stdio.pdf'), 'utf-8'));
 });
 
 test('compile the nested example to pdfs', (t) => {
-	const cmd = [
-		resolve(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node'), // ts-node binary
-		resolve(__dirname, '..', 'cli'), // md-to-pdf cli script (typescript)
-		'root.md', // files to convert
-		join('level-one', 'one.md'),
-		join('level-one', 'level-two', 'two.md'),
-	].join(' ');
+	const tsNodePath = resolve(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node');
+	const cliPath = resolve(__dirname, '..', 'cli');
+	const cmd = `"${tsNodePath}" "${cliPath}" root.md level-one/one.md level-one/level-two/two.md`;
 
-	t.notThrows(() => execSync(cmd, { cwd: resolve(__dirname, 'nested') }));
+	t.notThrows(() => execSync(cmd, { shell: '/bin/sh', cwd: resolve(__dirname, 'nested') }));
 
 	t.notThrows(() => readFileSync(resolve(__dirname, 'nested', 'root.pdf'), 'utf-8'));
 	t.notThrows(() => readFileSync(resolve(__dirname, 'nested', 'level-one', 'one.pdf'), 'utf-8'));

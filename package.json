@@ -1,22 +1,24 @@
 {
-  "name": "md-to-pdf",
-  "version": "5.2.4",
-  "description": "CLI tool for converting Markdown files to PDF.",
+  "name": "markpdf",
+  "version": "6.0.0",
+  "description": "Modern, powerful CLI tool for converting Markdown files to PDF with Mermaid diagram support, syntax highlighting, and advanced customization.",
   "keywords": [
     "markdown-to-pdf",
     "cli",
     "pdf-generation",
     "documentation",
-    "assignments",
-    "homework",
+    "mermaid",
+    "diagrams",
     "markdown",
     "pdf",
     "puppeteer",
     "headless-chrome",
-    "html-to-pdf"
+    "html-to-pdf",
+    "modern",
+    "typescript"
   ],
   "engines": {
-    "node": ">=12.0"
+    "node": ">=18.0"
   },
   "files": [
     "/dist",
@@ -30,48 +32,53 @@
     "clean": "rm -rf dist",
     "prepack": "npm run clean && npm run build",
     "lint": "xo",
-    "test": "xo && tsc -p tsconfig.type-test.json && nyc ava src/test/lib.spec.ts && ava src/test/api.spec.ts && ava src/test/cli.spec.ts --timeout=1m",
-    "release": "npm test && npx standard-version --infile=changelog.md && git push --follow-tags origin master && npm publish",
+    "test": "xo && tsc -p tsconfig.type-test.json && nyc ava src/test/lib.spec.ts src/test/help.spec.ts src/test/serve-dir.spec.ts src/test/validate-node-version.spec.ts src/test/config-service.spec.ts src/test/file-service.spec.ts src/test/markdown-parser-service.spec.ts src/test/get-marked-edge-cases.spec.ts src/test/server-service.spec.ts src/test/hash-utils.spec.ts src/test/domain/result.spec.ts src/test/domain/logger.spec.ts src/test/domain/errors.spec.ts src/test/domain/entities.spec.ts && ava src/test/api.spec.ts src/test/index.spec.ts && ava src/test/cli.spec.ts src/test/cli-service.spec.ts src/test/cli-edge-cases.spec.ts src/test/md-to-pdf.spec.ts src/test/generate-output.spec.ts src/test/output-generator-service.spec.ts src/test/output-generator-edge-cases.spec.ts src/test/process-mermaid.spec.ts src/test/mermaid-processor-service.spec.ts src/test/mermaid-parallel-processing.spec.ts src/test/mermaid-image-generation.spec.ts src/test/edge-cases-negative.spec.ts src/test/converter-service.spec.ts src/test/converter-service-edge-cases.spec.ts --timeout=2m",
+    "release": "npm test && npx standard-version --infile=CHANGELOG.md && git push --follow-tags origin master && npm publish",
     "loc": "npx cloc src --exclude-dir=test --by-file"
   },
   "bin": {
-    "md-to-pdf": "dist/cli.js",
-    "md2pdf": "dist/cli.js"
+    "markpdf": "dist/cli.js"
   },
-  "author": "Simon Haenisch (https://github.com/simonhaenisch)",
-  "license": "MIT",
-  "repository": "simonhaenisch/md-to-pdf",
-  "homepage": "https://github.com/simonhaenisch/md-to-pdf#readme",
+  "author": "Misha Lubich <michaelle.lubich@gmail.com> (https://github.com/ml-lubich)",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ml-lubich/markpdf.git"
+  },
+  "homepage": "https://github.com/ml-lubich/markpdf#readme",
+  "bugs": {
+    "url": "https://github.com/ml-lubich/markpdf/issues"
+  },
   "dependencies": {
     "arg": "^5.0.2",
     "chalk": "^4.1.2",
-    "chokidar": "^3.5.2",
+    "chokidar": "^4.0.3",
     "get-port": "^5.1.1",
     "get-stdin": "^8.0.0",
     "gray-matter": "^4.0.3",
-    "highlight.js": "^11.7.0",
-    "iconv-lite": "^0.6.3",
+    "highlight.js": "^11.11.1",
+    "iconv-lite": "^0.7.0",
     "listr": "^0.14.3",
-    "marked": "^4.2.12",
-    "puppeteer": ">=8.0.0",
-    "semver": "^7.3.7",
-    "serve-handler": "^6.1.3"
+    "marked": "^4.3.0",
+    "puppeteer": "^24.30.0",
+    "semver": "^7.7.3",
+    "serve-handler": "^6.1.6"
   },
   "devDependencies": {
-    "@types/listr": "0.14.5",
-    "@types/marked": "4.3.0",
-    "@types/semver": "7.5.4",
-    "@types/serve-handler": "6.1.3",
-    "ava": "3.15.0",
-    "nyc": "15.1.0",
-    "pdfjs-dist": "3.6.172",
-    "prettier": "2.8.8",
-    "prettier-plugin-organize-imports": "3.2.3",
-    "tap-xunit": "2.4.1",
-    "ts-node": "10.9.1",
-    "tsd": "0.29.0",
-    "typescript": "5.1.6",
-    "xo": "0.39.1"
+    "@types/listr": "^0.14.10",
+    "@types/marked": "^4.3.0",
+    "@types/semver": "^7.7.1",
+    "@types/serve-handler": "^6.1.4",
+    "ava": "^6.4.1",
+    "nyc": "^17.1.0",
+    "pdfjs-dist": "^4.8.69",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "tap-xunit": "^2.4.1",
+    "ts-node": "^10.9.2",
+    "tsd": "^0.33.0",
+    "typescript": "^5.9.3",
+    "xo": "^0.60.0"
   },
   "ava": {
     "extensions": [

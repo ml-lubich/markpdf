@@ -1,6 +1,8 @@
-import semver from 'semver';
-import { PackageJson } from '..';
+/**
+ * Node Version Validation - Compatibility Export
+ * 
+ * @deprecated Import from './validators/node-version' instead
+ * This file exists for backward compatibility with existing tests.
+ */
 
-const pkg: PackageJson = require('../../package.json');
-
-export const validateNodeVersion = () => semver.satisfies(process.versions.node, pkg.engines.node);
+export { validateNodeVersion } from './validators/node-version';

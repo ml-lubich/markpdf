@@ -1,16 +1,37 @@
-import hljs from 'highlight.js';
-import { marked } from 'marked';
+/**
+ * Marked Parser - Compatibility Export
+ * 
+ * @deprecated Import from './services/MarkdownParserService' instead
+ * This file exists for backward compatibility with existing tests.
+ */
 
-export const getMarked = (options: marked.MarkedOptions, extensions: marked.MarkedExtension[]) => {
-	marked.setOptions({
-		highlight: (code, languageName) => {
-			const language = hljs.getLanguage(languageName) ? languageName : 'plaintext';
+export { MarkdownParserService } from './services/MarkdownParserService';
+import type { marked } from 'marked';
 
-			return hljs.highlight(code, { language }).value;
-		},
-		langPrefix: 'hljs ',
-		...options,
-	});
-	marked.use(...extensions);
-	return marked;
-};
+// Legacy function exports for backward compatibility
+import { MarkdownParserService } from './services/MarkdownParserService';
+
+/**
+ * @deprecated Use MarkdownParserService directly instead
+ */
+export function createMarkedRenderer(
+	options: marked.MarkedOptions,
+	extensions: any[],
+): MarkedParser {
+	const service = new MarkdownParserService(options, extensions);
+	return {
+		parse: (markdown: string) => service.parse(markdown),
+	};
+}
+
+interface MarkedParser {
+	parse(markdown: string): string;
+}
+
+/**
+ * @deprecated Use MarkdownParserService directly instead
+ */
+export function getMarked(options: marked.MarkedOptions, extensions: any[]): (markdown: string) => string {
+	const service = new MarkdownParserService(options, extensions);
+	return (markdown: string) => service.parse(markdown);
+}

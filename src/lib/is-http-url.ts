@@ -1,12 +1,8 @@
 /**
- * Check whether the input is a url.
- *
- * @returns `true` if a URL can be constructed from `input`, `false` otherwise.
+ * HTTP URL Check - Compatibility Export
+ * 
+ * @deprecated Import from './utils/url' instead
+ * This file exists for backward compatibility with existing tests.
  */
-export const isHttpUrl = (input: string) => {
-	try {
-		return new URL(input).protocol.startsWith('http');
-	} catch {
-		return false;
-	}
-};
+
+export { isHttpUrl } from './utils/url';

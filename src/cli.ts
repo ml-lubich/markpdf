@@ -1,26 +1,21 @@
 #!/usr/bin/env node
 
-// --
-// Packages
+/**
+ * CLI Entry Point
+ * 
+ * This is the main entry point for the markpdf command-line tool.
+ * It parses arguments and delegates to CliService for execution.
+ */
 
 import arg from 'arg';
 import chalk from 'chalk';
-import { watch, WatchOptions } from 'chokidar';
-import getPort from 'get-port';
-import getStdin from 'get-stdin';
-import Listr from 'listr';
-import path from 'path';
-import { PackageJson } from '.';
-import { Config, defaultConfig } from './lib/config';
-import { closeBrowser } from './lib/generate-output';
-import { help } from './lib/help';
-import { convertMdToPdf } from './lib/md-to-pdf';
-import { closeServer, serveDirectory } from './lib/serve-dir';
-import { validateNodeVersion } from './lib/validate-node-version';
+import { defaultConfig } from './lib/config';
+import { CliService } from './lib/cli/CliService';
 
-// --
-// Configure CLI Arguments
-
+/**
+ * Parse CLI arguments and flags.
+ * Supports all markpdf command-line options.
+ */
 export const cliFlags = arg({
 	'--help': Boolean,
 	'--version': Boolean,
@@ -45,131 +40,28 @@ export const cliFlags = arg({
 	'--config-file': String,
 	'--devtools': Boolean,
 
-	// aliases
+	// Aliases
 	'-h': '--help',
 	'-v': '--version',
 	'-w': '--watch',
 });
 
-// --
-// Run
-
-main(cliFlags, defaultConfig).catch((error) => {
-	console.error(error);
-	process.exit(1);
-});
-
-// --
-// Define Main Function
-
-async function main(args: typeof cliFlags, config: Config) {
-	process.title = 'md-to-pdf';
-
-	if (!validateNodeVersion()) {
-		throw new Error('Please use a Node.js version that satisfies the version specified in the engines field.');
+/**
+ * Main execution function.
+ * Creates CliService instance and runs with parsed arguments.
+ */
+async function main() {
+	const cliService = new CliService();
+	
+	try {
+		await cliService.run(cliFlags, defaultConfig);
+	} catch (error) {
+		// Format error message for user
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error(`\n${chalk.red('✖ Error:')} ${errorMessage}\n`);
+		process.exit(1);
 	}
-
-	if (args['--version']) {
-		return console.log((require('../package.json') as PackageJson).version);
-	}
-
-	if (args['--help']) {
-		return help();
-	}
-
-	/**
-	 * 1. Get input.
-	 */
-
-	const files = args._;
-
-	const stdin = await getStdin();
-
-	if (files.length === 0 && !stdin) {
-		return help();
-	}
-
-	/**
-	 * 2. Read config file and merge it into the config object.
-	 */
-
-	if (args['--config-file']) {
-		try {
-			const configFile: Partial<Config> = require(path.resolve(args['--config-file']));
-
-			config = {
-				...config,
-				...configFile,
-				pdf_options: { ...config.pdf_options, ...configFile.pdf_options },
-			};
-		} catch (error) {
-			console.warn(chalk.red(`Warning: couldn't read config file: ${path.resolve(args['--config-file'])}`));
-			console.warn(error instanceof SyntaxError ? error.message : error);
-		}
-	}
-
-	/**
-	 * 3. Start the file server.
-	 */
-
-	if (args['--basedir']) {
-		config.basedir = args['--basedir'];
-	}
-
-	config.port = args['--port'] ?? (await getPort());
-
-	const server = await serveDirectory(config);
-
-	/**
-	 * 4. Either process stdin or create a Listr task for each file.
-	 */
-
-	if (stdin) {
-		await convertMdToPdf({ content: stdin }, config, { args })
-			.finally(async () => {
-				await closeBrowser();
-				await closeServer(server);
-			})
-			.catch((error: Error) => {
-				throw error;
-			});
-
-		return;
-	}
-
-	const getListrTask = (file: string) => ({
-		title: `generating ${args['--as-html'] ? 'HTML' : 'PDF'} from ${chalk.underline(file)}`,
-		task: async () => convertMdToPdf({ path: file }, config, { args }),
-	});
-
-	await new Listr(files.map(getListrTask), { concurrent: true, exitOnError: false })
-		.run()
-		.then(async () => {
-			if (args['--watch']) {
-				console.log(chalk.bgBlue('\n watching for changes \n'));
-
-				const watchOptions = args['--watch-options']
-					? (JSON.parse(args['--watch-options']) as WatchOptions)
-					: config.watch_options;
-
-				watch(files, watchOptions).on('change', async (file) =>
-					new Listr([getListrTask(file)], { exitOnError: false }).run().catch(console.error),
-				);
-			} else {
-				await closeBrowser();
-				await closeServer(server);
-			}
-		})
-		.catch((error: Error) => {
-			/**
-			 * In watch mode the error needs to be shown immediately because the `main` function's catch handler will never execute.
-			 *
-			 * @todo is this correct or does `main` actually finish and the process is just kept alive because of the file server?
-			 */
-			if (args['--watch']) {
-				return console.error(error);
-			}
-
-			throw error;
-		});
 }
+
+// Execute main function
+main();

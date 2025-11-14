@@ -1,10 +1,8 @@
-import { join, parse } from 'path';
-
 /**
- * Derive the output file path from a source file.
+ * Output File Path - Compatibility Export
+ * 
+ * @deprecated Import from './utils/file' instead
+ * This file exists for backward compatibility with existing tests.
  */
-export const getOutputFilePath = (mdFilePath: string, extension: 'html' | 'pdf') => {
-	const { dir, name } = parse(mdFilePath);
 
-	return join(dir, `${name}.${extension}`);
-};
+export { getOutputFilePath } from './utils/file';

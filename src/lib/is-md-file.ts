@@ -1,6 +1,8 @@
-const extensions = /\.(md|mkd|mdown|markdown)(\.txt)?$/i;
-
 /**
- * Check whether a path is a markdown file.
+ * Markdown File Check - Compatibility Export
+ * 
+ * @deprecated Import from './utils/file' instead
+ * This file exists for backward compatibility with existing tests.
  */
-export const isMdFile = (path: string) => extensions.test(path);
+
+export { isMdFile } from './utils/file';

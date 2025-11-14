@@ -98,9 +98,22 @@ pre code {
 	page-break-after: always;
 }
 
+/* Base image styling - all images are centered by default */
 img {
 	max-width: 100%;
+	margin: 1em auto;
+	display: block;
+}
+
+/* Center Mermaid chart containers */
+.mermaid-chart-container {
+	text-align: center;
 	margin: 1em 0;
+	display: block;
+}
+
+.mermaid-chart-container img {
+	margin: 0 auto;
 }
 
 table {

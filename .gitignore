@@ -1,11 +1,46 @@
+# IDE and Editor
 .vscode
-node_modules
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
 
-# generated
-/dist/*
+# Cursor AI files (ignore .cursorrules, use .cursor/ directory instead)
+.cursorrules
+.cursor/
 
-# tests
+# Dependencies
+node_modules/
+
+# Generated files
+dist/
+
+# Test artifacts
 /.nyc_output
 /coverage
 /src/test/**/*.pdf
 /src/test/**/*.html
+*.test.pdf
+*.test.html
+
+# Generated PDFs (ignore all except test PDFs)
+*.pdf
+!src/test/**/*.pdf
+
+# Temporary test files
+test-simple.*
+
+# Build artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+Thumbs.db
+.DS_Store

@@ -14,9 +14,10 @@ import { readFile } from '../lib/read-file';
 // --
 // config
 test("gray-matter's js engine is disabled by default", (t) => {
-	t.throws(() => {
-		throw (defaultConfig.gray_matter_options.engines!.js as () => Error)();
-	});
+	const error = (defaultConfig.gray_matter_options.engines!.js as () => Error)();
+	t.true(error instanceof Error);
+	t.true(error.message.includes('JS engine for front-matter is disabled'));
+	t.true(error.message.includes('security reasons'));
 });
 
 // --

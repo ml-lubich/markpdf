@@ -1,0 +1,290 @@
+/**
+ * CliService - Handles CLI-specific logic and orchestration.
+ * Separates CLI concerns from core conversion logic.
+ */
+
+import chalk from 'chalk';
+import { watch } from 'chokidar';
+// Chokidar v4 doesn't export WatchOptions, use any for now
+type WatchOptions = any;
+import getPort from 'get-port';
+import getStdin from 'get-stdin';
+import Listr from 'listr';
+import path from 'path';
+import { PackageJson } from '../..';
+import { Config, defaultConfig } from '../config';
+import { help } from './help';
+import { convertMdToPdf } from '../core/converter';
+import { ConfigService } from '../services/ConfigService';
+import { ServerService } from '../services/ServerService';
+import { OutputGeneratorService } from '../services/OutputGeneratorService';
+import { validateNodeVersion } from '../validators/node-version';
+
+export type CliArgs = typeof import('../../cli').cliFlags;
+
+/**
+ * Service for handling CLI operations.
+ * Manages argument parsing, configuration, file processing, and watch mode.
+ */
+export class CliService {
+	private readonly configService: ConfigService;
+	private readonly serverService: ServerService;
+	private readonly outputGenerator: OutputGeneratorService;
+
+	constructor() {
+		this.configService = new ConfigService();
+		this.serverService = new ServerService();
+		this.outputGenerator = new OutputGeneratorService();
+	}
+
+	/**
+	 * Main CLI entry point.
+	 * Processes arguments and executes conversion.
+	 *
+	 * @param args - Parsed CLI arguments
+	 * @param config - Base configuration
+	 */
+	public async run(args: CliArgs, config: Config = defaultConfig): Promise<void> {
+		process.title = 'markpdf';
+
+		// Validate Node version
+		if (!validateNodeVersion()) {
+			throw new Error('Please use a Node.js version that satisfies the version specified in the engines field.');
+		}
+
+		// Handle version flag
+		if (args['--version']) {
+			return this.showVersion();
+		}
+
+		// Handle help flag
+		if (args['--help']) {
+			return help();
+		}
+
+		// Get input files or stdin
+		const files = (args._ as string[]) || [];
+		const stdin = await getStdin();
+
+		if (files.length === 0 && !stdin) {
+			return help();
+		}
+
+		// Load and merge configuration
+		const mergedConfig = await this.loadConfiguration(args, config);
+
+		// Start server
+		await this.serverService.start(mergedConfig);
+
+		// Setup cleanup
+		const cleanup = async () => {
+			await this.outputGenerator.closeBrowser();
+			await this.serverService.stop();
+		};
+
+		try {
+			// Process stdin or files
+			if (stdin) {
+				await this.processStdin(stdin, mergedConfig, args);
+			} else {
+				await this.processFiles(files, mergedConfig, args, cleanup);
+			}
+		} catch (error) {
+			await cleanup();
+			throw error;
+		}
+	}
+
+	/**
+	 * Show version information.
+	 */
+	private showVersion(): void {
+		const pkg = require('../../package.json') as PackageJson;
+		console.log(pkg.version);
+	}
+
+	/**
+	 * Load and merge configuration from various sources.
+	 *
+	 * @param args - CLI arguments
+	 * @param baseConfig - Base configuration
+	 * @returns Merged configuration
+	 */
+	private async loadConfiguration(args: CliArgs, baseConfig: Config): Promise<Config> {
+		let config = { ...baseConfig };
+
+		// Load config file if specified
+		if (args['--config-file']) {
+			config = this.loadConfigFile(args['--config-file'] as string, config);
+		}
+
+		// Merge CLI arguments
+		config = this.configService.mergeCliArgs(config, args as unknown as Record<string, string | string[] | boolean>);
+
+		// Set basedir from CLI
+		if (args['--basedir']) {
+			config.basedir = args['--basedir'] as string;
+		}
+
+		// Set port
+		const portArg = args['--port'];
+		config.port = (typeof portArg === 'number' ? portArg : undefined) ?? (await getPort());
+
+		return config;
+	}
+
+	/**
+	 * Load configuration from file.
+	 *
+	 * @param configFilePath - Path to config file
+	 * @param baseConfig - Base configuration to merge with
+	 * @returns Merged configuration
+	 */
+	private loadConfigFile(configFilePath: string, baseConfig: Config): Config {
+		try {
+			const configFile: Partial<Config> = require(path.resolve(configFilePath));
+			return this.configService.mergeConfigs(baseConfig, configFile);
+		} catch (error) {
+			console.warn(chalk.red(`Warning: couldn't read config file: ${path.resolve(configFilePath)}`));
+			console.warn(error instanceof SyntaxError ? error.message : error);
+			return baseConfig;
+		}
+	}
+
+	/**
+	 * Process stdin input.
+	 *
+	 * @param stdin - Standard input content
+	 * @param config - Configuration
+	 * @param args - CLI arguments
+	 */
+	private async processStdin(stdin: string, config: Config, args: CliArgs): Promise<void> {
+		await convertMdToPdf({ content: stdin }, config, { args });
+	}
+
+	/**
+	 * Process file inputs with optional watch mode.
+	 *
+	 * @param files - Array of file paths
+	 * @param config - Configuration
+	 * @param args - CLI arguments
+	 * @param cleanup - Cleanup function
+	 */
+	private async processFiles(
+		files: string[],
+		config: Config,
+		args: CliArgs,
+		cleanup: () => Promise<void>,
+	): Promise<void> {
+		const getListrTask = (file: string) => ({
+			title: `generating ${args['--as-html'] ? 'HTML' : 'PDF'} from ${chalk.underline(file)}`,
+			task: async () => {
+				try {
+					await convertMdToPdf({ path: file }, config, { args });
+				} catch (error) {
+					// Format error message for user
+					const errorMessage = this.formatErrorMessage(error, file);
+					throw new Error(errorMessage);
+				}
+			},
+		});
+
+		try {
+			// Process all files
+			await new Listr(files.map(getListrTask), { concurrent: true, exitOnError: false }).run();
+
+			// Handle watch mode
+			if (args['--watch']) {
+				await this.startWatchMode(files, config, args, getListrTask);
+			}
+		} catch (error) {
+			// Re-throw with formatted message
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			throw new Error(`Failed to process files: ${errorMessage}`);
+		} finally {
+			// Always cleanup (except in watch mode)
+			if (!args['--watch']) {
+				await cleanup();
+			}
+		}
+	}
+
+	/**
+	 * Start watch mode for file changes.
+	 *
+	 * @param files - Files to watch
+	 * @param config - Configuration
+	 * @param args - CLI arguments
+	 * @param getListrTask - Function to create Listr tasks
+	 */
+	private async startWatchMode(
+		files: string[],
+		_config: Config,
+		args: CliArgs,
+		getListrTask: (file: string) => { title: string; task: () => Promise<void> },
+	): Promise<void> {
+		console.log(chalk.bgBlue('\n watching for changes \n'));
+
+		const watchOptions = args['--watch-options']
+			? (JSON.parse(args['--watch-options'] as string) as WatchOptions)
+			: {};
+
+		const watcher = watch(files, watchOptions);
+		(watcher as any).on('change', async (file: string) => {
+			try {
+				await new Listr([getListrTask(file)], { exitOnError: false }).run();
+			} catch (error) {
+				const errorMessage = this.formatErrorMessage(error, file);
+				console.error(chalk.red(`\n✖ Error: ${errorMessage}\n`));
+			}
+		});
+	}
+
+	/**
+	 * Format error message for user-friendly display.
+	 *
+	 * @param error - Error object
+	 * @param file - File path (optional)
+	 * @returns Formatted error message
+	 */
+	private formatErrorMessage(error: unknown, file?: string): string {
+		if (error instanceof Error) {
+			// Check if it's a domain error with a user-friendly message
+			if ('code' in error && 'message' in error) {
+				const message = error.message;
+				// Remove technical details and make it user-friendly
+				if (message.includes('File not found')) {
+					return message;
+				}
+				if (message.includes('Permission denied')) {
+					return message;
+				}
+				if (message.includes('Failed to read markdown file')) {
+					return message;
+				}
+				if (message.includes('Failed to create')) {
+					return message;
+				}
+				// For other errors, provide context
+				return file 
+					? `Error processing "${file}": ${message}`
+					: message;
+			}
+			return file 
+				? `Error processing "${file}": ${error.message}`
+				: error.message;
+		}
+		return file 
+			? `Unknown error processing "${file}"`
+			: 'Unknown error occurred';
+	}
+
+	/**
+	 * Cleanup resources.
+	 */
+	public async cleanup(): Promise<void> {
+		await this.outputGenerator.closeBrowser();
+		await this.serverService.stop();
+	}
+}
+
