@@ -253,8 +253,3 @@ flowchart LR
 ## 📝 Conclusion
 
 This document demonstrates the power of Mermaid diagrams in markdown documents. All diagrams are automatically rendered as high-quality images in the PDF output, making your documentation both beautiful and informative.
-
----
-
-*Generated with markpdf - A modern Markdown to PDF converter*
-
