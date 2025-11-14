@@ -518,6 +518,6 @@ src/test/
 
 ## Related Documentation
 
-- **Architecture**: [../architecture.md](../architecture.md) - System architecture
-- **System Design**: [../system-design.md](../system-design.md) - Design patterns
-- **CLI Interface**: [../cli-interface.md](../cli-interface.md) - CLI reference
+- **Architecture**: [../ARCHITECTURE.md](../ARCHITECTURE.md) - System architecture
+- **System Design**: [../SYSTEM-DESIGN.md](../SYSTEM-DESIGN.md) - Design patterns
+- **CLI Interface**: [../CLI-INTERFACE.md](../CLI-INTERFACE.md) - CLI reference

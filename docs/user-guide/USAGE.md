@@ -412,6 +412,6 @@ markpdf ./document.md
 ## Related Documentation
 
 - **Quick Start**: [QUICKSTART.md](./QUICKSTART.md) - Get started quickly
-- **CLI Reference**: [../cli-interface.md](../cli-interface.md) - Complete CLI reference
+- **CLI Reference**: [../CLI-INTERFACE.md](../CLI-INTERFACE.md) - Complete CLI reference
 - **Examples**: [../../examples/](../../examples/) - Example files
-- **Architecture**: [../architecture.md](../architecture.md) - System architecture
+- **Architecture**: [../ARCHITECTURE.md](../ARCHITECTURE.md) - System architecture

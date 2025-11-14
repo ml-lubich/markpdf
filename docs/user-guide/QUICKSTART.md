@@ -161,9 +161,9 @@ highlight_style: monokai
 ## Next Steps
 
 - **Detailed Usage**: See [USAGE.md](./USAGE.md) for comprehensive documentation
-- **CLI Reference**: See [../cli-interface.md](../cli-interface.md) for all options
+- **CLI Reference**: See [../CLI-INTERFACE.md](../CLI-INTERFACE.md) for all options
 - **Examples**: Check [../../examples/](../../examples/) directory
-- **Architecture**: See [../architecture.md](../architecture.md) for developers
+- **Architecture**: See [../ARCHITECTURE.md](../ARCHITECTURE.md) for developers
 
 ## Troubleshooting
 
