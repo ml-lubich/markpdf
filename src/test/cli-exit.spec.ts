@@ -32,10 +32,7 @@ async function cleanupTempFile(filePath: string): Promise<void> {
 	}
 }
 
-const longTest = test;
-longTest.timeout(30000);
-
-longTest('CliService should cleanup browser and server after file processing', async (t) => {
+test('CliService should cleanup browser and server after file processing', async (t) => {
 	const cliService = new CliService();
 	const outputGenerator = (cliService as any).outputGenerator as OutputGeneratorService;
 	const serverService = (cliService as any).serverService as ServerService;
@@ -218,10 +215,7 @@ test('OutputGeneratorService.closeBrowser should handle errors gracefully', asyn
 	t.is(outputGenerator['browserInstance'], undefined);
 });
 
-const integrationTest = test;
-integrationTest.timeout(35000);
-
-integrationTest('CLI process should exit after file conversion (integration test)', async (t) => {
+test('CLI process should exit after file conversion (integration test)', async (t) => {
 	const testFile = await createTempMarkdown('# Test\n\nThis is a test.');
 	const outputFile = testFile.replace('.md', '.pdf');
 
@@ -293,10 +287,7 @@ integrationTest('CLI process should exit after stdin conversion (integration tes
 	t.pass('Process exited successfully after stdin processing');
 });
 
-const watchTest = test;
-watchTest.timeout(5000);
-
-watchTest('CLI should not cleanup in watch mode', async (t) => {
+test('CLI should not cleanup in watch mode', async (t) => {
 	const testFile = await createTempMarkdown('# Test\n\nThis is a test.');
 
 	try {
