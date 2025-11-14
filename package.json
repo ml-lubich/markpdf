@@ -1,6 +1,6 @@
 {
   "name": "@ml-lubich/markpdf",
-  "version": "6.0.3",
+  "version": "6.0.4",
   "description": "Modern, powerful CLI tool for converting Markdown files to PDF with Mermaid diagram support, syntax highlighting, and advanced customization.",
   "keywords": [
     "markdown-to-pdf",
@@ -62,8 +62,7 @@
     "marked": "^4.3.0",
     "puppeteer": "^24.30.0",
     "semver": "^7.7.3",
-    "serve-handler": "^6.1.6",
-    "html-docx-js-typescript": "^0.1.5"
+    "serve-handler": "^6.1.6"
   },
   "devDependencies": {
     "@types/listr": "^0.14.10",

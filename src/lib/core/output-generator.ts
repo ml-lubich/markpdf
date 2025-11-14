@@ -1,6 +1,6 @@
 /**
  * Output Generator
- * Generates PDF, HTML, or DOCX output from HTML content using Puppeteer.
+ * Generates PDF or HTML output from HTML content using Puppeteer.
  */
 
 import { join, posix, sep } from 'node:path';
@@ -8,7 +8,7 @@ import puppeteer, { type Browser } from 'puppeteer';
 import { type Config } from '../config.js';
 import { isHttpUrl } from '../utils/url.js';
 
-export type Output = PdfOutput | HtmlOutput | DocxOutput;
+export type Output = PdfOutput | HtmlOutput;
 
 export type PdfOutput = {
 	content: Buffer;
@@ -16,10 +16,6 @@ export type PdfOutput = {
 
 export type HtmlOutput = {
 	content: string;
-} & BasicOutput;
-
-export type DocxOutput = {
-	content: Buffer;
 } & BasicOutput;
 
 type BasicOutput = {
@@ -37,15 +33,15 @@ let browserPromise: Promise<Browser> | undefined;
 export const closeBrowser = async (): Promise<void> => (await browserPromise)?.close();
 
 /**
- * Generate PDF, HTML, or DOCX output from HTML content.
+ * Generate PDF or HTML output from HTML content.
  *
  * This function creates a Puppeteer page, loads the HTML content, applies
- * stylesheets and scripts, and generates either a PDF, HTML, or DOCX output based
+ * stylesheets and scripts, and generates either a PDF or HTML output based
  * on the configuration.
  *
  * @param html - The HTML content to convert
  * @param relativePath - Relative path for the HTML file (used for serving)
- * @param config - Configuration object (PdfConfig, HtmlConfig, or DocxConfig)
+ * @param config - Configuration object (PdfConfig or HtmlConfig)
  * @param browserRef - Optional browser instance to reuse (otherwise creates new one)
  * @returns Promise resolving to output object with filename and content
  */
@@ -119,21 +115,6 @@ export async function generateOutput(
 		});
 	} else if (config.as_html) {
 		outputFileContent = await page.content();
-	} else if (config.as_docx) {
-		const htmlContent = await page.content();
-		const htmlToDocx = (await import('html-docx-js-typescript')).default;
-		const docxResult = htmlToDocx.asBlob(htmlContent);
-		const docxBlob = docxResult instanceof Promise ? await docxResult : docxResult;
-		
-		if (docxBlob instanceof Buffer) {
-			outputFileContent = docxBlob;
-		} else if (docxBlob instanceof Blob) {
-			const arrayBuffer = await docxBlob.arrayBuffer();
-			outputFileContent = Buffer.from(arrayBuffer);
-		} else {
-			// If it's already an ArrayBuffer
-			outputFileContent = Buffer.from(docxBlob as ArrayBuffer);
-		}
 	} else {
 		const pdfBuffer = await page.pdf(config.pdf_options);
 		outputFileContent = Buffer.from(pdfBuffer);

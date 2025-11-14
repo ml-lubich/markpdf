@@ -108,12 +108,20 @@ img {
 /* Center Mermaid chart containers */
 .mermaid-chart-container {
 	text-align: center;
-	margin: 1em 0;
+	margin: 1em auto;
 	display: block;
+	max-width: 90%;
+	overflow: hidden;
+	width: fit-content;
 }
 
 .mermaid-chart-container img {
 	margin: 0 auto;
+	max-width: 100%;
+	width: auto;
+	height: auto;
+	display: block;
+	object-fit: contain;
 }
 
 table {

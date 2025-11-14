@@ -42,10 +42,10 @@ export const readFile = async (file: string, encoding = 'utf-8'): Promise<string
  * Preserves the directory structure and base filename.
  *
  * @param mdFilePath - Path to the source markdown file
- * @param extension - Output file extension ('html', 'pdf', or 'docx')
+ * @param extension - Output file extension ('html' or 'pdf')
  * @returns Output file path with new extension
  */
-export const getOutputFilePath = (mdFilePath: string, extension: 'html' | 'pdf' | 'docx'): string => {
+export const getOutputFilePath = (mdFilePath: string, extension: 'html' | 'pdf'): string => {
 	const { dir, name } = parse(mdFilePath);
 	return join(dir, `${name}.${extension}`);
 };

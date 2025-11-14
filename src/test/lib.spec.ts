@@ -117,7 +117,6 @@ test('getOutputFilePath should return the same path but with different extension
 
 	t.is(getOutputFilePath(mdFilePath, 'pdf'), `${sep}var${sep}foo${sep}bar.pdf`);
 	t.is(getOutputFilePath(mdFilePath, 'html'), `${sep}var${sep}foo${sep}bar.html`);
-	t.is(getOutputFilePath(mdFilePath, 'docx'), `${sep}var${sep}foo${sep}bar.docx`);
 });
 
 // --

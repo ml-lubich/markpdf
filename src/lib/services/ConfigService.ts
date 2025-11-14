@@ -38,14 +38,9 @@ export class ConfigService implements IConfigService {
 			};
 		}
 
-		// Ensure as_html and as_docx are properly set (mutually exclusive)
-		if (merged.as_docx === true) {
+		// Ensure as_html is properly set
+		if (merged.as_html !== true) {
 			merged.as_html = false;
-		} else if (merged.as_html === true) {
-			merged.as_docx = false;
-		} else {
-			merged.as_html = false;
-			merged.as_docx = false;
 		}
 
 		// Ensure pdf_options is always defined

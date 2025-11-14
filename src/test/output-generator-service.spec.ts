@@ -1,13 +1,13 @@
 /**
  * Tests for OutputGeneratorService
  *
- * Tests PDF, HTML, and DOCX output generation.
+ * Tests PDF and HTML output generation.
  */
 
 import test from 'ava';
 import puppeteer, { type Browser } from 'puppeteer';
 import { OutputGeneratorService } from '../lib/services/OutputGeneratorService.js';
-import { defaultConfig, type PdfConfig, type HtmlConfig, type DocxConfig } from '../lib/config.js';
+import { defaultConfig, type PdfConfig, type HtmlConfig } from '../lib/config.js';
 import { ServerService } from '../lib/services/ServerService.js';
 
 let browser: Browser;
@@ -197,48 +197,6 @@ test('generate should handle navigation timeout gracefully', async (t) => {
 		const result = await service.generate(html, 'test.html', config, browser);
 		t.truthy(result);
 		t.truthy(result!.content instanceof Buffer);
-	} finally {
-		await serverService.stop();
-	}
-});
-
-test('generate should generate DOCX output when as_docx is true', async (t) => {
-	const service = new OutputGeneratorService();
-	const html = '<html><body><h1>Test Document</h1><p>This is a test paragraph.</p></body></html>';
-	const config: DocxConfig = { ...defaultConfig, port: 9010, as_docx: true };
-	await serverService.start(config);
-
-	try {
-		const result = await service.generate(html, 'test.html', config, browser);
-
-		t.truthy(result);
-		t.truthy(result!.content instanceof Buffer);
-		t.true(result!.content.length > 0);
-		// DOCX files should start with PK (ZIP file signature)
-		const header = result!.content.slice(0, 2).toString('hex');
-		t.is(header, '504b', 'DOCX file should start with ZIP signature (PK)');
-	} finally {
-		await serverService.stop();
-	}
-});
-
-test('generate should create valid DOCX with stylesheets', async (t) => {
-	const service = new OutputGeneratorService();
-	const html = '<html><body><h1>Styled Document</h1></body></html>';
-	const config: DocxConfig = {
-		...defaultConfig,
-		port: 9011,
-		as_docx: true,
-		stylesheet: [...defaultConfig.stylesheet],
-	};
-	await serverService.start(config);
-
-	try {
-		const result = await service.generate(html, 'test.html', config, browser);
-
-		t.truthy(result);
-		t.truthy(result!.content instanceof Buffer);
-		t.true(result!.content.length > 0);
 	} finally {
 		await serverService.stop();
 	}

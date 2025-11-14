@@ -37,7 +37,6 @@ export const cliFlags = arg({
 	'--md-file-encoding': String,
 	'--stylesheet-encoding': String,
 	'--as-html': Boolean,
-	'--as-docx': Boolean,
 	'--config-file': String,
 	'--devtools': Boolean,
 

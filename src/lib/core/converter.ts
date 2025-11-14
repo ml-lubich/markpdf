@@ -12,13 +12,13 @@ import { getOutputFilePath } from '../utils/file.js';
 type CliArguments = typeof import('../../cli').cliFlags;
 
 /**
- * Convert markdown content or file to PDF, HTML, or DOCX.
+ * Convert markdown content or file to PDF or HTML.
  *
  * This is the core conversion function that uses the ConverterService.
  * It handles CLI argument merging and delegates to the service layer.
  *
  * @param input - Either a file path object `{ path: string }` or content object `{ content: string }`
- * @param config - Configuration object for PDF/HTML/DOCX generation
+ * @param config - Configuration object for PDF/HTML generation
  * @param options - Optional parameters including CLI args and browser instance
  * @param options.args - CLI arguments to merge into config
  * @param options.browser - Optional Puppeteer browser instance to reuse
@@ -56,8 +56,7 @@ export const convertMdToPdf = async (
 
 	// Set output destination if not provided
 	if (!mergedConfig.dest && 'path' in input) {
-		const extension = mergedConfig.as_html ? 'html' : mergedConfig.as_docx ? 'docx' : 'pdf';
-		mergedConfig.dest = getOutputFilePath(input.path, extension);
+		mergedConfig.dest = getOutputFilePath(input.path, mergedConfig.as_html ? 'html' : 'pdf');
 	}
 
 	// Create converter service with default dependencies and convert

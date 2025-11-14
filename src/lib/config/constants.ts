@@ -29,6 +29,12 @@ export const MERMAID_CONSTANTS = {
 	CHART_PADDING_PX: 40,
 
 	/**
+	 * Maximum width for Mermaid chart containers as percentage of page width.
+	 * Keeps diagrams readable while maintaining high resolution.
+	 */
+	MAX_CHART_WIDTH_PERCENT: 90,
+
+	/**
 	 * Device scale factor for high-resolution screenshots.
 	 * 2 = 2x resolution (Retina), 3 = 3x resolution (Super Retina)
 	 * Higher values produce sharper images but larger file sizes.

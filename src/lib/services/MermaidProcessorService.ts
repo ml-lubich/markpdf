@@ -69,13 +69,18 @@ export class MermaidProcessorService implements IMermaidProcessor {
 				const imageDataUri = `data:${IMAGE_CONSTANTS.MIME_TYPE};base64,${imageBase64}`;
 
 				// Use HTML img tag directly - marked will pass it through
-				const imageMarkdown = `<div class="${MERMAID_CONSTANTS.CONTAINER_CLASS}"><img src="${imageDataUri}" alt="Mermaid Chart ${matchIndex + 1}" style="max-width: 100%; height: auto;" /></div>`;
+				// High-res image but constrained display size (90% max width) for better layout
+				const maxWidthPercent = MERMAID_CONSTANTS.MAX_CHART_WIDTH_PERCENT;
+				const imageMarkdown = `<div class="${MERMAID_CONSTANTS.CONTAINER_CLASS}" style="max-width: ${maxWidthPercent}%;"><img src="${imageDataUri}" alt="Mermaid Chart ${matchIndex + 1}" style="max-width: 100%; width: auto; height: auto; display: block; margin: 0 auto;" /></div>`;
 
 				processedMarkdown = processedMarkdown.replace(fullMatch, imageMarkdown);
 				matchIndex++;
 			} catch (error) {
+				// Remove the failed Mermaid diagram from markdown instead of including broken image
 				const errorMessage = error instanceof Error ? error.message : String(error);
-				warnings.push(`Failed to render Mermaid chart ${matchIndex + 1}: ${errorMessage}`);
+				warnings.push(`Skipping Mermaid chart ${matchIndex + 1} due to syntax error: ${errorMessage}`);
+				// Remove the entire code block from markdown
+				processedMarkdown = processedMarkdown.replace(fullMatch, '');
 				matchIndex++;
 			}
 		}
@@ -143,9 +148,13 @@ export class MermaidProcessorService implements IMermaidProcessor {
 			}
 
 			// Set viewport with device scale factor for high-resolution screenshots
+			// Keep original dimensions for visual size, device scale factor adds pixel density
+			const viewportWidth = Math.ceil(dimensions.width) + MERMAID_CONSTANTS.CHART_PADDING_PX;
+			const viewportHeight = Math.ceil(dimensions.height) + MERMAID_CONSTANTS.CHART_PADDING_PX;
+			
 			await page.setViewport({
-				width: Math.ceil(dimensions.width) + MERMAID_CONSTANTS.CHART_PADDING_PX,
-				height: Math.ceil(dimensions.height) + MERMAID_CONSTANTS.CHART_PADDING_PX,
+				width: viewportWidth,
+				height: viewportHeight,
 				deviceScaleFactor: MERMAID_CONSTANTS.DEVICE_SCALE_FACTOR,
 			});
 

@@ -16,7 +16,7 @@ const getMarkdownCssPath = (): string => {
 	return resolve(__dirname, '..', '..', '..', 'assets', 'css', 'markdown.css');
 };
 
-export const defaultConfig: Config = {
+export const defaultConfig: PdfConfig = {
 	basedir: process.cwd(),
 	stylesheet: [getMarkdownCssPath()],
 	script: [],
@@ -49,7 +49,6 @@ export const defaultConfig: Config = {
 	md_file_encoding: 'utf-8',
 	stylesheet_encoding: 'utf-8',
 	as_html: false,
-	as_docx: false,
 	devtools: false,
 	marked_extensions: [],
 };
@@ -57,17 +56,13 @@ export const defaultConfig: Config = {
 /**
  * In config keys, dashes of cli flag names are replaced with underscores.
  */
-export type Config = PdfConfig | HtmlConfig | DocxConfig;
+export type Config = PdfConfig | HtmlConfig;
 
 export type PdfConfig = {
 	/**
 	 * If true, output HTML instead of PDF.
 	 */
 	as_html: false;
-	/**
-	 * If true, output DOCX instead of PDF.
-	 */
-	as_docx: false;
 } & BasicConfig;
 
 export type HtmlConfig = {
@@ -75,21 +70,6 @@ export type HtmlConfig = {
 	 * If true, output HTML instead of PDF.
 	 */
 	as_html: true;
-	/**
-	 * If true, output DOCX instead of PDF.
-	 */
-	as_docx: false;
-} & BasicConfig;
-
-export type DocxConfig = {
-	/**
-	 * If true, output HTML instead of PDF.
-	 */
-	as_html: false;
-	/**
-	 * If true, output DOCX instead of PDF.
-	 */
-	as_docx: true;
 } & BasicConfig;
 
 type BasicConfig = {
@@ -181,11 +161,6 @@ type BasicConfig = {
 	 * CSS stylesheet encoding. Default: `utf-8`.
 	 */
 	stylesheet_encoding: string;
-
-	/**
-	 * If true, output DOCX instead of PDF.
-	 */
-	as_docx: boolean;
 
 	/**
 	 * If true, open chromium with devtools instead of saving the pdf. This is
