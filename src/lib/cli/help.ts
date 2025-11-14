@@ -73,15 +73,15 @@ const helpText = `
 
   ${chalk.gray('–')} Convert file.md using the Monokai theme for code highlighting
 
-    ${chalk.cyan('$ mdpdf file.md --highlight-style monokai')}
+    ${chalk.cyan('$ markpdf file.md --highlight-style monokai')}
 
   ${chalk.gray('–')} Convert file.md using custom page options
 
-    ${chalk.cyan('$ mdpdf file.md --pdf-options \'{ "format": "Letter" }\'')}
+    ${chalk.cyan('$ markpdf file.md --pdf-options \'{ "format": "Letter" }\'')}
 
   ${chalk.gray('–')} Convert file.md but save the intermediate HTML instead
 
-    ${chalk.cyan('$ mdpdf file.md --as-html')}
+    ${chalk.cyan('$ markpdf file.md --as-html')}
 `;
 
 export const help = (): void => console.log(helpText);
