@@ -31,8 +31,9 @@ export const MERMAID_CONSTANTS = {
 	/**
 	 * Maximum width for Mermaid chart containers as percentage of page width.
 	 * Keeps diagrams readable while maintaining high resolution.
+	 * Reduced from 90% to prevent huge vertical flowcharts.
 	 */
-	MAX_CHART_WIDTH_PERCENT: 90,
+	MAX_CHART_WIDTH_PERCENT: 70,
 
 	/**
 	 * Device scale factor for high-resolution screenshots.

@@ -110,7 +110,7 @@ img {
 	text-align: center;
 	margin: 1em auto;
 	display: block;
-	max-width: 90%;
+	max-width: 70%;
 	overflow: hidden;
 	width: fit-content;
 }
@@ -118,6 +118,7 @@ img {
 .mermaid-chart-container img {
 	margin: 0 auto;
 	max-width: 100%;
+	max-height: 80vh; /* Constrain height for vertical flowcharts */
 	width: auto;
 	height: auto;
 	display: block;
