@@ -1,176 +1,196 @@
-# Quick Start Guide - How to Run markpdf
+# Quick Start Guide
 
-## Simple Usage (Recommended)
+Get started with markpdf in minutes. This guide covers the essential commands and features you need to know.
 
-### Step 1: Build the Project (if not already built)
+## 📋 Table of Contents
+
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Key Features](#key-features)
+- [Common Commands](#common-commands)
+- [Next Steps](#next-steps)
+
+## Installation
+
+### Install from npm
 
 ```bash
+npm install -g @ml-lubich/markpdf
+```
+
+### Install as a dependency
+
+```bash
+npm install @ml-lubich/markpdf
+```
+
+### For development
+
+```bash
+git clone https://github.com/ml-lubich/markpdf.git
+cd markpdf
+npm install
 npm run build
+npm link
 ```
 
-### Step 2: Run the Tool
+## Basic Usage
 
-**Basic command:**
+### Convert a Single File
+
 ```bash
-node dist/cli.js <input-file.md>
+markpdf document.md
 ```
 
-**Examples:**
+This creates `document.pdf` in the same directory.
+
+### Convert Multiple Files
+
 ```bash
-# Convert a single file
-node dist/cli.js src/test/basic/test.md
+markpdf *.md
+markpdf chapter1.md chapter2.md chapter3.md
+```
 
-# Convert the mermaid test file
-node dist/cli.js src/test/mermaid/test-mermaid.md
+### Watch Mode (Auto-regenerate)
 
-# Convert with watch mode (auto-regenerate on changes)
-node dist/cli.js src/test/basic/test.md -w
+```bash
+markpdf document.md --watch
+```
 
-# Get help
-node dist/cli.js --help
+Automatically regenerates the PDF when the file changes.
+
+### Convert from Stdin
+
+```bash
+cat document.md | markpdf > output.pdf
+echo "# Hello" | markpdf > output.pdf
+```
+
+## Key Features
+
+### Mermaid Diagram Support
+
+Simply include Mermaid code blocks in your Markdown:
+
+````markdown
+```mermaid
+flowchart TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+````
+
+The tool automatically:
+- Detects Mermaid code blocks
+- Renders them to images
+- Embeds them in the PDF
+- Cleans up temporary files
+
+**Supported diagram types:**
+- Flowcharts
+- Sequence Diagrams
+- Gantt Charts
+- Class Diagrams
+- State Diagrams
+- Entity Relationship Diagrams
+- And more!
+
+### Syntax Highlighting
+
+Automatic syntax highlighting for code blocks:
+
+```bash
+markpdf document.md --highlight-style monokai
+```
+
+Available themes: `github`, `monokai`, `vs`, `atom-one-dark`, `dracula`, etc.
+
+### Custom Styling
+
+Add custom CSS:
+
+```bash
+markpdf document.md --stylesheet custom.css --css "body { font-size: 12pt; }"
 ```
 
 ## Common Commands
 
-### Convert a File
-```bash
-node dist/cli.js your-file.md
-```
-This creates `your-file.pdf` in the same directory.
-
-### Convert Multiple Files
-```bash
-node dist/cli.js file1.md file2.md file3.md
-```
-
-### Watch Mode (Auto-regenerate)
-```bash
-node dist/cli.js your-file.md -w
-```
-Press `Ctrl+C` to stop watching.
-
-### Custom Styling
-```bash
-# Use custom stylesheet
-node dist/cli.js file.md --stylesheet custom.css
-
-# Use custom CSS
-node dist/cli.js file.md --css "body { font-family: Arial; }"
-
-# Change code highlighting
-node dist/cli.js file.md --highlight-style monokai
-```
-
-### Output HTML Instead of PDF
-```bash
-node dist/cli.js file.md --as-html
-```
-
-## Using npm link (Optional)
-
-If you want to use the `markpdf` command directly:
+### Get Help
 
 ```bash
-# Link the package globally
-npm link
-
-# Now you can use:
-markpdf your-file.md
 markpdf --help
 ```
 
-## Testing Mermaid Charts
-
-The tool automatically processes Mermaid charts in markdown files:
+### Show Version
 
 ```bash
-# Convert the mermaid test file
-node dist/cli.js src/test/mermaid/test-mermaid.md
-
-# This will:
-# 1. Render all mermaid charts to images
-# 2. Replace code blocks with image references
-# 3. Generate PDF with all charts included
+markpdf --version
 ```
 
-**Note:** Mermaid processing requires:
-- Internet connection (to download Mermaid.js)
-- Puppeteer (browser automation)
-- May take longer for files with many charts
+### Custom PDF Format
+
+```bash
+markpdf document.md --pdf-options '{"format": "Letter", "margin": "20mm"}'
+```
+
+### Generate HTML Instead of PDF
+
+```bash
+markpdf document.md --as-html
+```
+
+### Front Matter Configuration
+
+Configure PDF options directly in your Markdown file:
+
+````markdown
+---
+pdf_options:
+  format: a4
+  margin: 30mm
+  printBackground: true
+stylesheet:
+  - custom.css
+highlight_style: monokai
+---
+
+# Your Document
+````
+
+## Next Steps
+
+- **Detailed Usage**: See [USAGE.md](./USAGE.md) for comprehensive documentation
+- **CLI Reference**: See [../cli-interface.md](../cli-interface.md) for all options
+- **Examples**: Check [../../examples/](../../examples/) directory
+- **Architecture**: See [../architecture.md](../architecture.md) for developers
 
 ## Troubleshooting
 
 ### Command Not Found
-If you get "command not found", use:
+
+If `markpdf` is not found:
+- Ensure it's installed: `npm install -g @ml-lubich/markpdf`
+- Or use: `npx @ml-lubich/markpdf` instead
+- For development: run `npm link` after building
+
+### Permission Denied
+
+Make sure the CLI file is executable:
 ```bash
-node dist/cli.js --help
+chmod +x dist/cli.js
+npm link
 ```
-
-### Build Errors
-Rebuild the project:
-```bash
-npm run build
-```
-
-### Process Hangs/Stalls
-If the process hangs, it might be:
-1. **Mermaid processing** - This can take time, especially with many charts
-2. **Browser launching** - Puppeteer needs to launch Chrome/Chromium
-3. **Network issues** - Downloading Mermaid.js from CDN
-
-**Try:**
-- Wait a bit longer (first run can be slow)
-- Check your internet connection
-- Try with a simpler file first (no mermaid):
-  ```bash
-  node dist/cli.js src/test/basic/test.md
-  ```
 
 ### Port Already in Use
+
 Specify a different port:
 ```bash
-node dist/cli.js file.md --port 3001
+markpdf document.md --port 3001
 ```
 
-## File Structure
+### Mermaid Charts Not Rendering
 
-- **Input:** Markdown file (`.md`)
-- **Output:** PDF file (`.pdf`) in the same directory as input
-- **Temp files:** Created in system temp directory, cleaned up automatically
-
-## Examples
-
-### Basic Conversion
-```bash
-node dist/cli.js src/test/basic/test.md
-```
-
-### With Custom Options
-```bash
-node dist/cli.js file.md \
-  --highlight-style monokai \
-  --pdf-options '{"format": "Letter", "margin": "20mm"}' \
-  --stylesheet custom.css
-```
-
-### Watch Mode
-```bash
-node dist/cli.js file.md -w
-```
-
-## Getting Help
-
-```bash
-# Show help
-node dist/cli.js --help
-
-# Show version
-node dist/cli.js --version
-```
-
-## Next Steps
-
-- Check [USAGE.md](./USAGE.md) for detailed documentation
-- See [../../README.md](../../README.md) for full feature list
-- Test with `src/test/mermaid/test-mermaid.md` to see Mermaid charts in action
-
+- Ensure internet connection (Mermaid.js is loaded from CDN)
+- Check that Mermaid code blocks use exactly `\`\`\`mermaid` (lowercase)
+- Wait a bit longer - first render can take time

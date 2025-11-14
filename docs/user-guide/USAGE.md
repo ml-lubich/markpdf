@@ -1,122 +1,199 @@
-# How to Run markpdf
+# Usage Guide
 
-This guide explains different ways to run the `markpdf` tool to convert Markdown files to PDF.
+Comprehensive guide to using markpdf for converting Markdown files to PDF and HTML.
 
-## Quick Start
+## 📋 Table of Contents
 
-### Option 1: Run Directly with Node (Recommended for Development)
+- [Installation Options](#installation-options)
+- [Command-Line Usage](#command-line-usage)
+  - [Basic Commands](#basic-commands)
+  - [Input Options](#input-options)
+  - [Output Options](#output-options)
+- [Configuration](#configuration)
+  - [Configuration Sources](#configuration-sources)
+  - [CLI Options](#cli-options)
+  - [Front Matter](#front-matter)
+  - [Config Files](#config-files)
+- [Features](#features)
+  - [Mermaid Diagrams](#mermaid-diagrams)
+  - [Syntax Highlighting](#syntax-highlighting)
+  - [Custom Styling](#custom-styling)
+  - [Watch Mode](#watch-mode)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
 
-Since the project is already built, you can run it directly using Node:
+## Installation Options
+
+### Global Installation
 
 ```bash
-# Convert a single file
-node dist/cli.js src/test/mermaid/test-mermaid.md
-
-# Convert with watch mode
-node dist/cli.js src/test/mermaid/test-mermaid.md -w
-
-# Get help
-node dist/cli.js --help
+npm install -g @ml-lubich/markpdf
 ```
 
-### Option 2: Use npm link (For Development)
-
-Link the package globally so you can use the `markpdf` command from anywhere:
+After installation, use `markpdf` from anywhere:
 
 ```bash
-# From the project root directory
-npm link
-
-# Now you can use markpdf from anywhere
-markpdf src/test/mermaid/test-mermaid.md
-markpdf --help
+markpdf document.md
 ```
 
-### Option 3: Use npx (Without Installing)
-
-Run directly using npx:
+### Local Installation (as Dependency)
 
 ```bash
-# Make sure you're in the project directory
-npx markpdf src/test/mermaid/test-mermaid.md
+npm install @ml-lubich/markpdf
 ```
 
-### Option 4: Install Globally
+Then use in your code:
 
-Install the package globally:
+```typescript
+import { mdToPdf } from '@ml-lubich/markpdf';
+
+const pdf = await mdToPdf({ path: 'document.md' });
+```
+
+### Development Installation
 
 ```bash
-# Build first (if not already built)
+git clone https://github.com/ml-lubich/markpdf.git
+cd markpdf
+npm install
 npm run build
-
-# Install globally
-npm install -g .
-
-# Now use markpdf from anywhere
-markpdf src/test/mermaid/test-mermaid.md
+npm link
 ```
 
-## Common Usage Examples
+## Command-Line Usage
 
-### Convert a Single File
+### Basic Commands
 
 ```bash
-node dist/cli.js src/test/mermaid/test-mermaid.md
+# Convert single file
+markpdf document.md
+
+# Convert multiple files
+markpdf *.md
+markpdf file1.md file2.md file3.md
+
+# Watch mode
+markpdf document.md --watch
+
+# Show help
+markpdf --help
+
+# Show version
+markpdf --version
 ```
 
-This will create `src/test/mermaid/test-mermaid.pdf` in the same directory.
+### Input Options
 
-### Convert Multiple Files
+#### File Input
 
 ```bash
-# Convert all markdown files in a directory
-node dist/cli.js src/test/**/*.md
-
-# Convert specific files
-node dist/cli.js file1.md file2.md file3.md
+markpdf path/to/document.md
 ```
 
-### Watch Mode (Auto-regenerate on Changes)
+#### Stdin Input
 
 ```bash
-node dist/cli.js src/test/mermaid/test-mermaid.md -w
+cat document.md | markpdf > output.pdf
+echo "# Hello World" | markpdf > output.pdf
 ```
 
-The tool will watch the file for changes and automatically regenerate the PDF when you save.
+### Output Options
 
-### Custom Styling
+#### Default Output
+
+Creates PDF file with same name as input:
 
 ```bash
-# Use a custom stylesheet
-node dist/cli.js file.md --stylesheet custom.css
-
-# Use inline CSS
-node dist/cli.js file.md --css "body { font-family: Arial; }"
-
-# Change code highlighting theme
-node dist/cli.js file.md --highlight-style monokai
+markpdf document.md  # Creates document.pdf
 ```
 
-### Custom PDF Options
+#### HTML Output
 
 ```bash
-# Custom page format and margins
-node dist/cli.js file.md --pdf-options '{"format": "Letter", "margin": "20mm"}'
-
-# Print media type (for better print styling)
-node dist/cli.js file.md --page-media-type print
+markpdf document.md --as-html  # Creates document.html
 ```
 
-### Output HTML Instead of PDF
+#### Custom Output Path
 
-```bash
-# Generate HTML file instead of PDF
-node dist/cli.js file.md --as-html
-```
+Use `--dest` option (handled internally via configuration).
 
-### Use a Config File
+## Configuration
 
-Create a `config.json` file:
+### Configuration Sources
+
+Configuration is merged in this order (later sources override earlier ones):
+
+1. **Default configuration** - Built-in defaults
+2. **Config file** (optional) - JSON/JS file specified with `--config-file`
+3. **Front matter** (optional) - YAML front matter in the Markdown file
+4. **CLI arguments** - Command-line options (highest priority)
+
+### CLI Options
+
+#### General Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `-h, --help` | Show help | `markpdf --help` |
+| `-v, --version` | Show version | `markpdf --version` |
+| `-w, --watch` | Watch mode | `markpdf doc.md --watch` |
+
+#### Styling Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--stylesheet <path>` | Custom stylesheet | `--stylesheet custom.css` |
+| `--css <css>` | Inline CSS | `--css "body { font-size: 12pt; }"` |
+| `--highlight-style <name>` | Code highlighting theme | `--highlight-style monokai` |
+| `--body-class <class>` | Body CSS class | `--body-class markdown-body` |
+
+#### PDF Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--pdf-options <json>` | Puppeteer PDF options | `--pdf-options '{"format":"Letter"}'` |
+| `--page-media-type <type>` | Media type (screen/print) | `--page-media-type print` |
+
+#### Advanced Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--config-file <path>` | Config file | `--config-file config.json` |
+| `--basedir <path>` | Base directory | `--basedir ./docs` |
+| `--port <number>` | HTTP server port | `--port 3000` |
+| `--as-html` | Output HTML | `--as-html` |
+| `--devtools` | Open browser devtools | `--devtools` |
+
+### Front Matter
+
+Configure PDF options in your Markdown file:
+
+````markdown
+---
+pdf_options:
+  format: a4
+  margin: 30mm 25mm
+  printBackground: true
+  headerTemplate: |-
+    <div style="text-align: center; font-size: 11px;">
+      Document Title
+    </div>
+  footerTemplate: |-
+    <div style="text-align: center;">
+      Page <span class="pageNumber"></span> of <span class="totalPages"></span>
+    </div>
+stylesheet:
+  - https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.0.0/github-markdown.min.css
+body_class: markdown-body
+highlight_style: github
+---
+
+# Your Document Content
+````
+
+### Config Files
+
+Create a JSON config file:
 
 ```json
 {
@@ -124,92 +201,217 @@ Create a `config.json` file:
   "pdf_options": {
     "format": "A4",
     "margin": "20mm"
-  }
+  },
+  "stylesheet": ["custom.css"]
 }
 ```
 
-Then use it:
+Or JavaScript config file:
 
-```bash
-node dist/cli.js file.md --config-file config.json
+```javascript
+module.exports = {
+  highlight_style: 'monokai',
+  pdf_options: {
+    format: 'A4',
+    margin: '20mm'
+  },
+  stylesheet: ['custom.css']
+};
 ```
 
-## Working with Mermaid Charts
+Use it:
 
-The tool automatically processes Mermaid charts in markdown files. Just include mermaid code blocks:
+```bash
+markpdf document.md --config-file config.json
+```
+
+## Features
+
+### Mermaid Diagrams
+
+**How it works:**
+1. Tool detects `\`\`\`mermaid` code blocks
+2. Each diagram is rendered to a PNG image
+3. Images are embedded as base64 data URIs in the PDF
+4. Temporary files are automatically cleaned up
+
+**Example:**
 
 ````markdown
 ```mermaid
-flowchart TD
-    A[Start] --> B[End]
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
 ```
 ````
 
-The tool will:
-1. Render each mermaid chart to a PNG image
-2. Replace the mermaid code block with an image reference
-3. Include the image in the final PDF
+**Important:**
+- Use exactly `\`\`\`mermaid` (lowercase) - case-sensitive
+- No Mermaid charts = faster processing (nothing generated)
+- Multiple charts are processed sequentially
 
-## Testing the Mermaid Example
+### Syntax Highlighting
 
-To test the mermaid charts file we created:
+Automatic syntax highlighting for code blocks using highlight.js:
 
 ```bash
-# Convert the mermaid test file
-node dist/cli.js src/test/mermaid/test-mermaid.md
+markpdf document.md --highlight-style github
+```
 
-# This will create: src/test/mermaid/test-mermaid.pdf
+Popular themes: `github`, `monokai`, `vs`, `atom-one-dark`, `dracula`, `github-dark`.
+
+### Custom Styling
+
+#### Stylesheet Files
+
+```bash
+markpdf document.md --stylesheet custom.css --stylesheet theme.css
+```
+
+#### Inline CSS
+
+```bash
+markpdf document.md --css "body { font-family: 'Georgia', serif; font-size: 12pt; }"
+```
+
+#### Remote Stylesheets
+
+```bash
+markpdf document.md --stylesheet https://cdn.example.com/style.css
+```
+
+### Watch Mode
+
+Automatically regenerate PDF when files change:
+
+```bash
+markpdf document.md --watch
+```
+
+Press `Ctrl+C` to stop watching.
+
+## Examples
+
+### Basic Conversion
+
+```bash
+markpdf README.md
+```
+
+### Custom Styling
+
+```bash
+markpdf document.md \
+  --stylesheet custom.css \
+  --css "body { font-family: 'Georgia', serif; }" \
+  --highlight-style monokai
+```
+
+### Custom PDF Format
+
+```bash
+markpdf document.md --pdf-options '{"format": "Letter", "landscape": true, "margin": "1in"}'
+```
+
+### Watch Mode
+
+```bash
+markpdf document.md --watch
+```
+
+### Multiple Files with Config
+
+```bash
+markpdf chapter*.md --config-file book-config.json
+```
+
+### Stdin to Stdout
+
+```bash
+cat document.md | markpdf > output.pdf
+```
+
+### Generate HTML
+
+```bash
+markpdf document.md --as-html
 ```
 
 ## Troubleshooting
 
 ### Command Not Found
 
-If you get "command not found", use Option 1 (run with node directly) or run `npm link` first.
+**Issue:** `zsh: command not found: markpdf`
 
-### Build Errors
+**Solutions:**
+1. Install globally: `npm install -g @ml-lubich/markpdf`
+2. Use npx: `npx @ml-lubich/markpdf document.md`
+3. For development: `npm link` after building
 
-If you encounter issues, rebuild the project:
+### Permission Denied
 
+**Issue:** `zsh: permission denied: markpdf`
+
+**Solutions:**
 ```bash
-npm run build
-```
+# Make CLI executable
+chmod +x dist/cli.js
 
-### Watch Mode Not Working
-
-Make sure you're using the `-w` or `--watch` flag:
-
-```bash
-node dist/cli.js file.md -w
+# Re-link
+npm unlink
+npm link
 ```
 
 ### Port Already in Use
 
-If you get a port error, specify a different port:
+**Issue:** Error about port being in use
 
+**Solution:**
 ```bash
-node dist/cli.js file.md --port 3001
+markpdf document.md --port 3001
 ```
 
-## Development Mode
+### Mermaid Charts Not Showing
 
-For development, you can run the TypeScript compiler in watch mode:
+**Issue:** Mermaid diagrams appear as links or not rendered
 
+**Check:**
+- Use exactly `\`\`\`mermaid` (lowercase) - case-sensitive
+- Ensure internet connection (Mermaid.js loaded from CDN)
+- Wait longer - first render can take time
+- Check browser console if using `--devtools`
+
+### Process Hangs
+
+**Issue:** Command doesn't complete
+
+**Causes:**
+- Mermaid processing (can take time with many charts)
+- Browser launching (first run is slower)
+- Network issues downloading Mermaid.js
+
+**Solutions:**
+- Wait longer (first run can be slow)
+- Check internet connection
+- Try with simpler file first: `markpdf src/test/basic/test.md`
+
+### File Not Found
+
+**Issue:** Error about file not found
+
+**Solution:**
 ```bash
-# Terminal 1: Watch for TypeScript changes
-npm start
+# Use absolute path
+markpdf /full/path/to/document.md
 
-# Terminal 2: Run the tool (rebuilds automatically)
-node dist/cli.js src/test/mermaid/test-mermaid.md
+# Or relative path
+markpdf ./document.md
 ```
 
-## More Information
+## Related Documentation
 
-For detailed options and advanced usage, run:
-
-```bash
-node dist/cli.js --help
-```
-
-Or check the main README.md file.
-
+- **Quick Start**: [QUICKSTART.md](./QUICKSTART.md) - Get started quickly
+- **CLI Reference**: [../cli-interface.md](../cli-interface.md) - Complete CLI reference
+- **Examples**: [../../examples/](../../examples/) - Example files
+- **Architecture**: [../architecture.md](../architecture.md) - System architecture

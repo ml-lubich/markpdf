@@ -9,6 +9,8 @@ import { watch } from 'chokidar';
 import getPort from 'get-port';
 import getStdin from 'get-stdin';
 import Listr from 'listr';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { type PackageJson } from '../../index.js';
 import { type Config, defaultConfig } from '../config.js';
 import { convertMdToPdf } from '../core/converter.js';
@@ -96,7 +98,9 @@ export class CliService {
 	 * Show version information.
 	 */
 	private showVersion(): void {
-		const package_ = require('../../package.json') as PackageJson;
+		// Resolve package.json path: from dist/lib/cli/CliService.js -> package.json (root)
+		const packagePath = join(__dirname, '..', '..', '..', 'package.json');
+		const package_ = JSON.parse(readFileSync(packagePath, 'utf-8')) as PackageJson;
 		console.log(package_.version);
 	}
 
