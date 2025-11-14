@@ -4,4 +4,4 @@
  * @deprecated Import from './config/constants' instead
  */
 
-export * from './config/constants';
+export * from './config/constants.js';

@@ -3,31 +3,37 @@
  * Uses dependency injection for all sub-services.
  */
 
-import { dirname, relative, resolve } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
+import { dirname, relative, resolve } from 'node:path';
+import puppeteer, { type Browser } from 'puppeteer';
 import grayMatter from 'gray-matter';
-import { ConversionOutput, MarkdownInput, MermaidProcessResult, PdfConversionOutput, HtmlConversionOutput } from '../interfaces';
-import { Config } from '../config';
-import { IMermaidProcessor } from '../interfaces';
-import { IOutputGenerator } from '../interfaces';
-import { IFileService } from '../interfaces';
-import { IConfigService } from '../interfaces';
-import { getHtml } from '../get-html';
-import { getOutputFilePath } from '../get-output-file-path';
-import { defaultLogger, ILogger } from '../domain/Logger';
-import { ValidationError, MermaidProcessError, OutputGenerationError } from '../domain/errors';
-import { MermaidProcessorService } from './MermaidProcessorService';
-import { OutputGeneratorService } from './OutputGeneratorService';
-import { FileService } from './FileService';
-import { ConfigService } from './ConfigService';
-import { MERMAID_CONSTANTS } from '../config/constants';
+import {
+	type ConversionOutput,
+	type MarkdownInput,
+	type MermaidProcessResult,
+	type PdfConversionOutput,
+	type HtmlConversionOutput,
+	type IMermaidProcessor,
+	type IOutputGenerator,
+	type IFileService,
+	type IConfigService,
+} from '../interfaces.js';
+import { type Config } from '../config.js';
+import { getHtml } from '../get-html.js';
+import { getOutputFilePath } from '../get-output-file-path.js';
+import { defaultLogger, type ILogger } from '../domain/Logger.js';
+import { ValidationError, MermaidProcessError, OutputGenerationError } from '../domain/errors.js';
+import { MERMAID_CONSTANTS } from '../config/constants.js';
+import { MermaidProcessorService } from './MermaidProcessorService.js';
+import { OutputGeneratorService } from './OutputGeneratorService.js';
+import { FileService } from './FileService.js';
+import { ConfigService } from './ConfigService.js';
 
 /**
  * Factory function to create a ConverterService with default dependencies.
- * 
+ *
  * This follows Clean Architecture principles by providing a convenient way
  * to create a fully-configured service while maintaining explicit dependencies.
- * 
+ *
  * @param logger - Optional logger (defaults to console logger)
  * @returns Configured ConverterService instance
  */
@@ -64,7 +70,7 @@ export class ConverterService {
 
 	/**
 	 * Convert markdown input to PDF or HTML.
-	 * 
+	 *
 	 * This method orchestrates the conversion workflow:
 	 * 1. Validate input
 	 * 2. Read markdown content
@@ -82,20 +88,24 @@ export class ConverterService {
 	 * @throws ValidationError if input is invalid
 	 * @throws OutputGenerationError if output generation fails
 	 */
-	public async convert(
-		input: MarkdownInput,
-		config: Config,
-		browser?: Browser,
-	): Promise<ConversionOutput> {
+	public async convert(input: MarkdownInput, config: Config, browser?: Browser): Promise<ConversionOutput> {
 		// Validate service dependencies
 		if (!this.fileService) {
-			throw new ValidationError('File service is not initialized. Please ensure ConverterService is properly constructed.');
+			throw new ValidationError(
+				'File service is not initialized. Please ensure ConverterService is properly constructed.',
+			);
 		}
+
 		if (!this.configService) {
-			throw new ValidationError('Config service is not initialized. Please ensure ConverterService is properly constructed.');
+			throw new ValidationError(
+				'Config service is not initialized. Please ensure ConverterService is properly constructed.',
+			);
 		}
+
 		if (!this.outputGenerator) {
-			throw new ValidationError('Output generator is not initialized. Please ensure ConverterService is properly constructed.');
+			throw new ValidationError(
+				'Output generator is not initialized. Please ensure ConverterService is properly constructed.',
+			);
 		}
 
 		// Validate input
@@ -117,11 +127,7 @@ export class ConverterService {
 		const mergedConfig = this.configService.mergeConfigs(config, frontMatter as Partial<Config>);
 
 		// Set output destination
-		if (!mergedConfig.dest) {
-			mergedConfig.dest = input.path
-				? getOutputFilePath(input.path, mergedConfig.as_html ? 'html' : 'pdf')
-				: 'stdout';
-		}
+		mergedConfig.dest ||= input.path ? getOutputFilePath(input.path, mergedConfig.as_html ? 'html' : 'pdf') : 'stdout';
 
 		// Add highlight stylesheet
 		this.addHighlightStylesheet(mergedConfig);
@@ -133,12 +139,7 @@ export class ConverterService {
 		let mermaidImageFiles: string[] = [];
 		let processedMarkdown: string;
 		if (hasMermaidBlocks) {
-			const mermaidResult = await this.processMermaidDiagrams(
-				markdown,
-				mergedConfig,
-				browser,
-				input.path,
-			);
+			const mermaidResult = await this.processMermaidDiagrams(markdown, mergedConfig, browser, input.path);
 			processedMarkdown = mermaidResult.processedMarkdown;
 			mermaidImageFiles = mermaidResult.imageFiles;
 		} else {
@@ -156,6 +157,7 @@ export class ConverterService {
 			if (mergedConfig.devtools) {
 				throw new OutputGenerationError('No file is generated with --devtools.');
 			}
+
 			throw new OutputGenerationError(`Failed to create ${mergedConfig.as_html ? 'HTML' : 'PDF'}.`);
 		}
 
@@ -177,12 +179,13 @@ export class ConverterService {
 		if (mergedConfig.as_html) {
 			return output as HtmlConversionOutput;
 		}
+
 		return output as PdfConversionOutput;
 	}
 
 	/**
 	 * Validate input according to business rules.
-	 * 
+	 *
 	 * @param input - Input to validate
 	 * @throws ValidationError if input is invalid
 	 */
@@ -194,7 +197,7 @@ export class ConverterService {
 
 	/**
 	 * Read markdown content from input source.
-	 * 
+	 *
 	 * @param input - Input source
 	 * @param config - Configuration with encoding
 	 * @returns Promise resolving to markdown content
@@ -204,7 +207,7 @@ export class ConverterService {
 		if (input.content) {
 			return input.content;
 		}
-		
+
 		if (!input.path) {
 			throw new ValidationError('Input path is required when content is not provided');
 		}
@@ -221,28 +224,30 @@ export class ConverterService {
 			if (message.includes('ENOENT') || message.includes('no such file')) {
 				throw new ValidationError(
 					`File not found: "${input.path}". Please check that the file exists and the path is correct.`,
-					error instanceof Error ? error : undefined
+					error instanceof Error ? error : undefined,
 				);
 			}
+
 			if (message.includes('EACCES') || message.includes('permission denied')) {
 				throw new ValidationError(
 					`Permission denied: "${input.path}". Please check that you have read permission for this file.`,
-					error instanceof Error ? error : undefined
+					error instanceof Error ? error : undefined,
 				);
 			}
+
 			throw new ValidationError(
 				`Failed to read markdown file "${input.path}": ${message}`,
-				error instanceof Error ? error : undefined
+				error instanceof Error ? error : undefined,
 			);
 		}
 	}
 
 	/**
 	 * Parse front-matter from markdown content.
-	 * 
+	 *
 	 * Logs warnings but does not throw errors if front-matter parsing fails.
 	 * This allows conversion to continue even with invalid front-matter.
-	 * 
+	 *
 	 * @param content - Markdown content with optional front-matter
 	 * @param config - Configuration with gray-matter options
 	 * @returns Object with parsed markdown content and front-matter data
@@ -254,6 +259,7 @@ export class ConverterService {
 				this.logger.warn('Front-matter was ignored because it could not be parsed', result.data);
 				return { content, data: {} };
 			}
+
 			return result;
 		} catch (error) {
 			const parseError = error instanceof Error ? error : new Error(String(error));
@@ -264,7 +270,7 @@ export class ConverterService {
 
 	/**
 	 * Process Mermaid diagrams in markdown.
-	 * 
+	 *
 	 * @returns Object with processed markdown and image files to clean up
 	 */
 	private async processMermaidDiagrams(
@@ -280,7 +286,7 @@ export class ConverterService {
 		try {
 			if (!mermaidBrowser) {
 				mermaidBrowser = await puppeteer.launch({
-					headless: (config.launch_options?.headless ?? 'new') as boolean | 'new' | 'shell',
+					headless: config.launch_options?.headless ?? 'new',
 					devtools: config.devtools,
 					...config.launch_options,
 				} as any);
@@ -307,10 +313,15 @@ export class ConverterService {
 			imageFiles.push(...result.imageFiles);
 			return { processedMarkdown: result.processedMarkdown, imageFiles };
 		} catch (error) {
-			const processError = error instanceof Error 
-				? new MermaidProcessError(`Failed to process Mermaid charts: ${error.message}`, undefined, error)
-				: new MermaidProcessError(`Failed to process Mermaid charts: ${String(error)}`, undefined, new Error(String(error)));
-			
+			const processError =
+				error instanceof Error
+					? new MermaidProcessError(`Failed to process Mermaid charts: ${error.message}`, undefined, error)
+					: new MermaidProcessError(
+							`Failed to process Mermaid charts: ${String(error)}`,
+							undefined,
+							new Error(String(error)),
+						);
+
 			this.logger.warn('Failed to process Mermaid charts, continuing without them', processError);
 			return { processedMarkdown: markdown, imageFiles: [] };
 		} finally {
@@ -362,4 +373,3 @@ export class ConverterService {
 		await this.outputGenerator.closeBrowser();
 	}
 }
-

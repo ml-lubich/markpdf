@@ -2,15 +2,15 @@
 
 /**
  * CLI Entry Point
- * 
+ *
  * This is the main entry point for the markpdf command-line tool.
  * It parses arguments and delegates to CliService for execution.
  */
 
 import arg from 'arg';
 import chalk from 'chalk';
-import { defaultConfig } from './lib/config';
-import { CliService } from './lib/cli/CliService';
+import { defaultConfig } from './lib/config.js';
+import { CliService } from './lib/cli/CliService.js';
 
 /**
  * Parse CLI arguments and flags.
@@ -52,7 +52,7 @@ export const cliFlags = arg({
  */
 async function main() {
 	const cliService = new CliService();
-	
+
 	try {
 		await cliService.run(cliFlags, defaultConfig);
 	} catch (error) {

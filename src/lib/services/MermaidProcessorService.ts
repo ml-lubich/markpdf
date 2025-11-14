@@ -3,16 +3,15 @@
  * Renders Mermaid code blocks to images and replaces them in markdown.
  */
 
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import { Browser, Page } from 'puppeteer';
-import { IMermaidProcessor, MermaidProcessResult } from '../interfaces';
-import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../config/constants';
-import { generateContentHash } from '../utils/hash';
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { type Browser, type Page } from 'puppeteer';
+import { type IMermaidProcessor, type MermaidProcessResult } from '../interfaces.js';
+import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../config/constants.js';
+import { generateContentHash } from '../utils/hash.js';
 
 export class MermaidProcessorService implements IMermaidProcessor {
-
 	/**
 	 * Process Mermaid charts in markdown by rendering them to images.
 	 *
@@ -61,13 +60,7 @@ export class MermaidProcessorService implements IMermaidProcessor {
 			try {
 				// Generate short 8-character hash for filename
 				const contentHash = generateContentHash(mermaidCode, 8);
-				const imagePath = await this.renderMermaidToImage(
-					mermaidCode,
-					browser,
-					imageDir,
-					contentHash,
-					matchIndex,
-				);
+				const imagePath = await this.renderMermaidToImage(mermaidCode, browser, imageDir, contentHash, matchIndex);
 				imageFiles.push(imagePath);
 
 				// Read PNG and convert to base64 data URI for embedding in PDF
@@ -212,12 +205,11 @@ ${mermaidCode}
 </html>`;
 	}
 
-
 	/**
 	 * Wait for Mermaid to render the SVG.
 	 */
 	private async waitForMermaidRender(page: Page): Promise<void> {
-			await page
+		await page
 			.waitForFunction(
 				() => {
 					const mermaidElement = document.querySelector('.mermaid svg');
@@ -233,11 +225,11 @@ ${mermaidCode}
 	/**
 	 * Get SVG element dimensions.
 	 */
-	private async getSvgDimensions(page: Page): Promise<{ width: number; height: number } | null> {
+	private async getSvgDimensions(page: Page): Promise<{ width: number; height: number } | undefined> {
 		return page.evaluate(() => {
 			const svg = document.querySelector('.mermaid svg');
 			if (!svg) {
-				return null;
+				return undefined;
 			}
 
 			return {
@@ -254,4 +246,3 @@ ${mermaidCode}
 		await fs.mkdir(imageDir, { recursive: true });
 	}
 }
-

@@ -3,6 +3,5 @@
  * Central export point for all rendering functions.
  */
 
-export * from './html';
-export * from './marked';
-
+export * from './html.js';
+export * from './marked.js';

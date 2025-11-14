@@ -1,14 +1,14 @@
 /**
  * Output Generator Edge Cases and Negative Testing
- * 
+ *
  * Tests for PDF/HTML generation error conditions and edge cases.
  */
 
 import test from 'ava';
-import puppeteer, { Browser } from 'puppeteer';
-import { OutputGeneratorService } from '../lib/services/OutputGeneratorService';
-import { defaultConfig } from '../lib/config';
-import { ServerService } from '../lib/services/ServerService';
+import puppeteer, { type Browser } from 'puppeteer';
+import { OutputGeneratorService } from '../lib/services/OutputGeneratorService.js';
+import { defaultConfig } from '../lib/config.js';
+import { ServerService } from '../lib/services/ServerService.js';
 
 let browser: Browser;
 let serverService: ServerService;
@@ -26,7 +26,7 @@ test.after(async () => {
 test('generate should handle empty HTML content', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '';
-	const config = { ...defaultConfig, port: 11000 };
+	const config = { ...defaultConfig, port: 11_000 };
 	await serverService.start(config);
 
 	try {
@@ -42,7 +42,7 @@ test('generate should handle empty HTML content', async (t) => {
 test('generate should handle HTML with invalid syntax', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><div><p>Unclosed tags</div></body></html>';
-	const config = { ...defaultConfig, port: 11001 };
+	const config = { ...defaultConfig, port: 11_001 };
 	await serverService.start(config);
 
 	try {
@@ -57,8 +57,8 @@ test('generate should handle HTML with invalid syntax', async (t) => {
 
 test('generate should handle very large HTML content', async (t) => {
 	const service = new OutputGeneratorService();
-	const largeHtml = '<html><body>' + '<p>Content</p>'.repeat(10000) + '</body></html>';
-	const config = { ...defaultConfig, port: 11002 };
+	const largeHtml = '<html><body>' + '<p>Content</p>'.repeat(10_000) + '</body></html>';
+	const config = { ...defaultConfig, port: 11_002 };
 	await serverService.start(config);
 
 	try {
@@ -73,8 +73,9 @@ test('generate should handle very large HTML content', async (t) => {
 
 test('generate should handle HTML with external resources that fail to load', async (t) => {
 	const service = new OutputGeneratorService();
-	const html = '<html><head><link rel="stylesheet" href="https://nonexistent-domain-12345.com/style.css"></head><body><h1>Test</h1></body></html>';
-	const config = { ...defaultConfig, port: 11003 };
+	const html =
+		'<html><head><link rel="stylesheet" href="https://nonexistent-domain-12345.com/style.css"></head><body><h1>Test</h1></body></html>';
+	const config = { ...defaultConfig, port: 11_003 };
 	await serverService.start(config);
 
 	try {
@@ -92,7 +93,7 @@ test('generate should handle invalid stylesheet paths', async (t) => {
 	const html = '<html><body><h1>Test</h1></body></html>';
 	const config = {
 		...defaultConfig,
-		port: 11004,
+		port: 11_004,
 		stylesheet: ['/non/existent/stylesheet.css'],
 	};
 	await serverService.start(config);
@@ -112,7 +113,7 @@ test('generate should handle invalid script URLs', async (t) => {
 	const html = '<html><body><h1>Test</h1></body></html>';
 	const config = {
 		...defaultConfig,
-		port: 11005,
+		port: 11_005,
 		script: [{ url: 'https://invalid-url-12345.com/script.js' }],
 	};
 	await serverService.start(config);
@@ -130,7 +131,7 @@ test('generate should handle invalid script URLs', async (t) => {
 test('generate should handle closed browser instance', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test</h1></body></html>';
-	const config = { ...defaultConfig, port: 11006 };
+	const config = { ...defaultConfig, port: 11_006 };
 	await serverService.start(config);
 
 	const closedBrowser = await puppeteer.launch({ headless: true });
@@ -150,7 +151,7 @@ test('generate should handle invalid PDF options', async (t) => {
 	const html = '<html><body><h1>Test</h1></body></html>';
 	const config = {
 		...defaultConfig,
-		port: 11007,
+		port: 11_007,
 		pdf_options: {
 			format: 'InvalidFormat' as any,
 			margin: 'invalid' as any,
@@ -172,7 +173,7 @@ test('generate should handle invalid PDF options', async (t) => {
 test('generate should handle HTML with embedded scripts that throw errors', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test</h1><script>throw new Error("Test error");</script></body></html>';
-	const config = { ...defaultConfig, port: 11008 };
+	const config = { ...defaultConfig, port: 11_008 };
 	await serverService.start(config);
 
 	try {
@@ -188,7 +189,7 @@ test('generate should handle HTML with embedded scripts that throw errors', asyn
 test('generate should handle HTML with infinite loops in scripts', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test</h1><script>while(true) {}</script></body></html>';
-	const config = { ...defaultConfig, port: 11009 };
+	const config = { ...defaultConfig, port: 11_009 };
 	await serverService.start(config);
 
 	try {
@@ -205,13 +206,13 @@ test('generate should handle HTML with infinite loops in scripts', async (t) => 
 test('closeBrowser should handle multiple calls', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test</h1></body></html>';
-	const config = { ...defaultConfig, port: 11010 };
+	const config = { ...defaultConfig, port: 11_010 };
 	await serverService.start(config);
 
 	try {
 		await service.generate(html, 'test.html', config);
 		await service.closeBrowser();
-		
+
 		// Second close should not throw
 		await t.notThrowsAsync(async () => {
 			await service.closeBrowser();
@@ -224,7 +225,7 @@ test('closeBrowser should handle multiple calls', async (t) => {
 test('generate should handle HTML with unicode characters', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>测试 🎉 中文</h1></body></html>';
-	const config = { ...defaultConfig, port: 11011 };
+	const config = { ...defaultConfig, port: 11_011 };
 	await serverService.start(config);
 
 	try {
@@ -240,7 +241,7 @@ test('generate should handle HTML with unicode characters', async (t) => {
 test('generate should handle HTML with null bytes', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test\0null byte</h1></body></html>';
-	const config = { ...defaultConfig, port: 11012 };
+	const config = { ...defaultConfig, port: 11_012 };
 	await serverService.start(config);
 
 	try {
@@ -252,4 +253,3 @@ test('generate should handle HTML with null bytes', async (t) => {
 		await serverService.stop();
 	}
 });
-

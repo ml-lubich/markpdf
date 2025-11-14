@@ -3,9 +3,9 @@
  * Handles default config, front-matter, CLI args, and config files.
  */
 
-import { IConfigService } from '../interfaces';
-import { Config, defaultConfig } from '../config';
-import { getMarginObject } from '../utils/pdf';
+import { type IConfigService } from '../interfaces.js';
+import { type Config, defaultConfig } from '../config.js';
+import { getMarginObject } from '../utils/pdf.js';
 
 export class ConfigService implements IConfigService {
 	/**
@@ -24,7 +24,7 @@ export class ConfigService implements IConfigService {
 	 * @param configs - Configuration objects to merge
 	 * @returns Merged configuration
 	 */
-	public mergeConfigs(...configs: Partial<Config>[]): Config {
+	public mergeConfigs(...configs: Array<Partial<Config>>): Config {
 		let merged: Config = { ...defaultConfig };
 
 		for (const config of configs) {
@@ -33,7 +33,7 @@ export class ConfigService implements IConfigService {
 				...config,
 				pdf_options: {
 					...merged.pdf_options,
-					...(config.pdf_options ?? {}),
+					...config.pdf_options,
 				},
 			};
 		}
@@ -73,16 +73,16 @@ export class ConfigService implements IConfigService {
 			throw new Error('basedir is required');
 		}
 
-		if (config.port !== undefined && (config.port < 1 || config.port > 65535)) {
+		if (config.port !== undefined && (config.port < 1 || config.port > 65_535)) {
 			throw new Error('port must be between 1 and 65535');
 		}
 
 		if (!Array.isArray(config.stylesheet)) {
-			throw new Error('stylesheet must be an array');
+			throw new TypeError('stylesheet must be an array');
 		}
 
 		if (!Array.isArray(config.body_class)) {
-			throw new Error('body_class must be an array');
+			throw new TypeError('body_class must be an array');
 		}
 	}
 
@@ -93,29 +93,28 @@ export class ConfigService implements IConfigService {
 	 * @param args - CLI arguments object
 	 * @returns Merged configuration
 	 */
-	public mergeCliArgs(config: Config, args: Record<string, string | string[] | boolean>): Config {
-		const jsonArgs = new Set(['--marked-options', '--pdf-options', '--launch-options']);
+	public mergeCliArgs(config: Config, arguments_: Record<string, string | string[] | boolean>): Config {
+		const jsonArguments = new Set(['--marked-options', '--pdf-options', '--launch-options']);
 		const merged = { ...config };
 
-		for (const [argKey, argValue] of Object.entries(args)) {
-			if (!argKey.startsWith('--')) {
+		for (const [argumentKey, argumentValue] of Object.entries(arguments_)) {
+			if (!argumentKey.startsWith('--')) {
 				continue;
 			}
 
-			const key = argKey.slice(2).replace(/-/g, '_');
+			const key = argumentKey.slice(2).replaceAll('-', '_');
 
-			if (jsonArgs.has(argKey) && typeof argValue === 'string') {
+			if (jsonArguments.has(argumentKey) && typeof argumentValue === 'string') {
 				try {
-					(merged as any)[key] = JSON.parse(argValue);
+					(merged as any)[key] = JSON.parse(argumentValue);
 				} catch {
 					// Ignore invalid JSON
 				}
-			} else if (argValue !== undefined && argValue !== null) {
-				(merged as any)[key] = argValue;
+			} else if (argumentValue !== undefined && argumentValue !== null) {
+				(merged as any)[key] = argumentValue;
 			}
 		}
 
 		return merged;
 	}
 }
-

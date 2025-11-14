@@ -3,7 +3,7 @@
  * Pure utility functions for PDF-related operations.
  */
 
-import { PDFOptions } from 'puppeteer';
+import { type PDFOptions } from 'puppeteer';
 
 /**
  * Get a margin object from a CSS-like margin string.
@@ -30,11 +30,10 @@ export const getMarginObject = (margin: string): PDFOptions['margin'] => {
 	return left
 		? { top, right, bottom, left }
 		: bottom
-		? { top, right, bottom, left: right }
-		: right
-		? { top, right, bottom: top, left: right }
-		: top
-		? { top, right: top, bottom: top, left: top }
-		: undefined;
+			? { top, right, bottom, left: right }
+			: right
+				? { top, right, bottom: top, left: right }
+				: top
+					? { top, right: top, bottom: top, left: top }
+					: undefined;
 };
-

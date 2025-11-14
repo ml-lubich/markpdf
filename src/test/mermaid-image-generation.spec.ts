@@ -1,18 +1,18 @@
 /**
  * Tests for Mermaid Image Generation
- * 
+ *
  * Verifies that Mermaid charts are actually rendered to image files
  * with valid content, not just that the code executes.
  */
 
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { MermaidProcessorService } from '../lib/services/MermaidProcessorService';
-import { processMermaidCharts } from '../lib/process-mermaid';
-import { MERMAID_CONSTANTS } from '../lib/config/constants';
+import puppeteer, { type Browser } from 'puppeteer';
+import { MermaidProcessorService } from '../lib/services/MermaidProcessorService.js';
+import { processMermaidCharts } from '../lib/process-mermaid.js';
+import { MERMAID_CONSTANTS } from '../lib/config/constants.js';
 
 let browser: Browser;
 
@@ -34,7 +34,10 @@ test('processCharts should generate actual image files', async (t) => {
 
 	// Verify file actually exists
 	const filePath = result.imageFiles[0]!;
-	const exists = await fs.access(filePath).then(() => true).catch(() => false);
+	const exists = await fs
+		.access(filePath)
+		.then(() => true)
+		.catch(() => false);
 	t.true(exists, 'Image file should exist');
 
 	// Verify file has content (not empty)
@@ -74,7 +77,10 @@ Done.`;
 
 	// Verify all files exist and are valid
 	for (const filePath of result.imageFiles) {
-		const exists = await fs.access(filePath).then(() => true).catch(() => false);
+		const exists = await fs
+			.access(filePath)
+			.then(() => true)
+			.catch(() => false);
 		t.true(exists, `Image file should exist: ${filePath}`);
 
 		const stats = await fs.stat(filePath);
@@ -102,7 +108,10 @@ test('processMermaidCharts function should generate actual image files', async (
 
 	// Verify file exists and is valid
 	const filePath = result.imageFiles[0]!;
-	const exists = await fs.access(filePath).then(() => true).catch(() => false);
+	const exists = await fs
+		.access(filePath)
+		.then(() => true)
+		.catch(() => false);
 	t.true(exists);
 
 	const stats = await fs.stat(filePath);
@@ -171,8 +180,8 @@ test('generated images should be readable and have reasonable dimensions', async
 
 	t.true(width > 0, 'Image should have positive width');
 	t.true(height > 0, 'Image should have positive height');
-	t.true(width < 10000, 'Image width should be reasonable');
-	t.true(height < 10000, 'Image height should be reasonable');
+	t.true(width < 10_000, 'Image width should be reasonable');
+	t.true(height < 10_000, 'Image height should be reasonable');
 
 	// Cleanup
 	await fs.unlink(filePath).catch(() => {});
@@ -229,4 +238,3 @@ test('same content should generate same filename but different file instances', 
 		await fs.unlink(filePath).catch(() => {});
 	}
 });
-

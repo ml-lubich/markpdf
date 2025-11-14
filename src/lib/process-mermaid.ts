@@ -1,17 +1,17 @@
 /**
  * Mermaid Processing - Compatibility Export
- * 
+ *
  * @deprecated Import from './services/MermaidProcessorService' instead
  * This file exists for backward compatibility with existing tests.
  */
 
-export { MermaidProcessorService } from './services/MermaidProcessorService';
-export type { MermaidProcessResult } from './interfaces';
-
 // Legacy function exports for backward compatibility
-import { MermaidProcessorService } from './services/MermaidProcessorService';
 import type { Browser } from 'puppeteer';
-import type { MermaidProcessResult } from './interfaces';
+import { MermaidProcessorService } from './services/MermaidProcessorService.js';
+import type { MermaidProcessResult } from './interfaces.js';
+
+export { MermaidProcessorService } from './services/MermaidProcessorService.js';
+export type { MermaidProcessResult } from './interfaces.js';
 
 const processor = new MermaidProcessorService();
 

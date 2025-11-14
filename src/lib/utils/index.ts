@@ -3,9 +3,8 @@
  * Central export point for all utility functions.
  */
 
-export * from './file';
-export * from './url';
-export * from './path';
-export * from './pdf';
-export * from './hash';
-
+export * from './file.js';
+export * from './url.js';
+export * from './path.js';
+export * from './pdf.js';
+export * from './hash.js';

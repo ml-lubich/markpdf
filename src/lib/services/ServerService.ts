@@ -4,14 +4,14 @@
  * Also serves temporary Mermaid images from the system temp directory.
  */
 
-import { createServer, Server } from 'http';
-import { createReadStream, statSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { createServer, type Server } from 'node:http';
+import { createReadStream, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import serveHandler from 'serve-handler';
-import { IServerService } from '../interfaces';
-import { Config } from '../config';
-import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../config/constants';
+import { type IServerService } from '../interfaces.js';
+import { type Config } from '../config.js';
+import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../config/constants.js';
 
 export class ServerService implements IServerService {
 	private server: Server | undefined;
@@ -34,16 +34,16 @@ export class ServerService implements IServerService {
 			const url = request.url || '/';
 
 			// Handle requests for temporary Mermaid images
-			const tempUrlPath = `/${MERMAID_CONSTANTS.TEMP_URL_PATH}/`;
-			if (url.startsWith(tempUrlPath)) {
+			const temporaryUrlPath = `/${MERMAID_CONSTANTS.TEMP_URL_PATH}/`;
+			if (url.startsWith(temporaryUrlPath)) {
 				// Extract the filename from the URL
-				const filename = url.replace(tempUrlPath, '');
+				const filename = url.replace(temporaryUrlPath, '');
 				const filePath = join(mermaidTempDir, filename);
 
 				try {
 					// Check if file exists
 					const stats = statSync(filePath);
-					
+
 					// Set appropriate headers
 					response.writeHead(200, {
 						'Content-Type': IMAGE_CONSTANTS.MIME_TYPE,
@@ -53,14 +53,14 @@ export class ServerService implements IServerService {
 					// Stream the file
 					const fileStream = createReadStream(filePath);
 					fileStream.pipe(response);
-				} catch (error) {
+				} catch {
 					// File not found or error reading file
 					if (!response.headersSent) {
 						response.writeHead(404, { 'Content-Type': 'text/plain' });
 						response.end('Image not found');
 					}
 				}
-				
+
 				return;
 			}
 
@@ -119,4 +119,3 @@ export class ServerService implements IServerService {
 		return this.port;
 	}
 }
-

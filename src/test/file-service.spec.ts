@@ -1,13 +1,13 @@
 /**
  * Tests for FileService
- * 
+ *
  * Tests file reading, writing, and directory operations.
  */
 
+import { promises as fs } from 'node:fs';
+import { resolve } from 'node:path';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { resolve } from 'path';
-import { FileService } from '../lib/services/FileService';
+import { FileService } from '../lib/services/FileService.js';
 
 const fileService = new FileService();
 
@@ -22,7 +22,7 @@ test('readFile should read file with utf-8 encoding', async (t) => {
 
 test('readFile should read file with custom encoding', async (t) => {
 	const testMdPath = resolve(__dirname, 'basic', 'test.md');
-	const content = await fileService.readFile(testMdPath, 'utf-8');
+	const content = await fileService.readFile(testMdPath, 'utf8');
 
 	t.truthy(content);
 	t.is(typeof content, 'string');
@@ -50,7 +50,7 @@ test('writeFile should write string content', async (t) => {
 	try {
 		await fileService.writeFile(testPath, content);
 
-		const readContent = await fs.readFile(testPath, 'utf-8');
+		const readContent = await fs.readFile(testPath, 'utf8');
 		t.is(readContent, content);
 	} finally {
 		await fs.unlink(testPath).catch(() => {});
@@ -63,7 +63,10 @@ test('ensureDirectory should create directory if it does not exist', async (t) =
 	try {
 		await fileService.ensureDirectory(testDir);
 
-		const exists = await fs.access(testDir).then(() => true).catch(() => false);
+		const exists = await fs
+			.access(testDir)
+			.then(() => true)
+			.catch(() => false);
 		t.true(exists);
 	} finally {
 		await fs.rmdir(testDir).catch(() => {});
@@ -91,4 +94,3 @@ test('getDirectory should handle relative paths', (t) => {
 
 	t.is(dir, './path/to');
 });
-

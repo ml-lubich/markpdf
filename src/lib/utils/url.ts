@@ -19,4 +19,3 @@ export const isHttpUrl = (input: string): boolean => {
 		return false;
 	}
 };
-

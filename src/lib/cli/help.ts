@@ -85,4 +85,3 @@ const helpText = `
 `;
 
 export const help = (): void => console.log(helpText);
-

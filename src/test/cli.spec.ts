@@ -1,7 +1,7 @@
+import { execSync } from 'node:child_process';
+import { readFileSync, unlinkSync } from 'node:fs';
+import { resolve } from 'node:path';
 import test from 'ava';
-import { execSync } from 'child_process';
-import { readFileSync, unlinkSync } from 'fs';
-import { resolve } from 'path';
 
 test.before(() => {
 	const filesToDelete = [

@@ -21,7 +21,7 @@ export const MERMAID_CONSTANTS = {
 	 * Timeout for Mermaid rendering in milliseconds.
 	 * Increased for complex diagrams that take longer to render.
 	 */
-	RENDER_TIMEOUT_MS: 30000,
+	RENDER_TIMEOUT_MS: 30_000,
 
 	/**
 	 * Padding around Mermaid charts in pixels.
@@ -68,4 +68,3 @@ export const FS_CONSTANTS = {
 	 */
 	DEFAULT_ENCODING: 'utf-8',
 } as const;
-

@@ -3,10 +3,10 @@
  * Provides a clean interface for reading and writing files.
  */
 
-import { promises as fs } from 'fs';
-import { dirname } from 'path';
+import { promises as fs } from 'node:fs';
+import { dirname } from 'node:path';
 import iconv from 'iconv-lite';
-import { IFileService } from '../interfaces';
+import { type IFileService } from '../interfaces.js';
 
 export class FileService implements IFileService {
 	/**
@@ -16,7 +16,7 @@ export class FileService implements IFileService {
 	 * @param encoding - File encoding (default: 'utf-8')
 	 * @returns Promise resolving to file content as string
 	 */
-	public async readFile(path: string, encoding: string = 'utf-8'): Promise<string> {
+	public async readFile(path: string, encoding = 'utf-8'): Promise<string> {
 		const buffer = await fs.readFile(path);
 
 		if (encoding === 'utf-8') {
@@ -33,11 +33,7 @@ export class FileService implements IFileService {
 	 * @param content - Content to write (Buffer or string)
 	 */
 	public async writeFile(path: string, content: Buffer | string): Promise<void> {
-		if (Buffer.isBuffer(content)) {
-			await fs.writeFile(path, content as any);
-		} else {
-			await fs.writeFile(path, content, 'utf-8');
-		}
+		await (Buffer.isBuffer(content) ? fs.writeFile(path, content as any) : fs.writeFile(path, content, 'utf-8'));
 	}
 
 	/**
@@ -59,4 +55,3 @@ export class FileService implements IFileService {
 		return dirname(path);
 	}
 }
-

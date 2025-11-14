@@ -3,10 +3,15 @@
  * Manages Puppeteer browser instances and page rendering.
  */
 
-import puppeteer, { Browser, Page } from 'puppeteer';
-import { IOutputGenerator, ConversionOutput, PdfConversionOutput, HtmlConversionOutput } from '../interfaces';
-import { Config, HtmlConfig } from '../config';
-import { isHttpUrl } from '../utils/url';
+import puppeteer, { type Browser, type Page } from 'puppeteer';
+import {
+	type IOutputGenerator,
+	type ConversionOutput,
+	type PdfConversionOutput,
+	type HtmlConversionOutput,
+} from '../interfaces.js';
+import { type Config, type HtmlConfig } from '../config.js';
+import { isHttpUrl } from '../utils/url.js';
 
 export class OutputGeneratorService implements IOutputGenerator {
 	private browserPromise: Promise<Browser> | undefined;
@@ -25,9 +30,9 @@ export class OutputGeneratorService implements IOutputGenerator {
 		html: string,
 		relativePath: string,
 		config: Config,
-		browserRef?: Browser,
+		browserReference?: Browser,
 	): Promise<ConversionOutput | undefined> {
-		const browser = await this.getBrowser(browserRef, config);
+		const browser = await this.getBrowser(browserReference, config);
 		const page = await browser.newPage();
 
 		try {
@@ -56,14 +61,14 @@ export class OutputGeneratorService implements IOutputGenerator {
 	/**
 	 * Get or create browser instance.
 	 */
-	private async getBrowser(browserRef: Browser | undefined, config: Config): Promise<Browser> {
-		if (browserRef) {
-			return browserRef;
+	private async getBrowser(browserReference: Browser | undefined, config: Config): Promise<Browser> {
+		if (browserReference) {
+			return browserReference;
 		}
 
 		if (!this.browserPromise) {
 			this.browserPromise = puppeteer.launch({
-				headless: (config.launch_options?.headless ?? 'new') as boolean | 'new' | 'shell',
+				headless: config.launch_options?.headless ?? 'new',
 				devtools: config.devtools,
 				...config.launch_options,
 			} as any);
@@ -78,7 +83,7 @@ export class OutputGeneratorService implements IOutputGenerator {
 	 * Windows-compatible path handling.
 	 */
 	private async setupPage(page: Page, html: string, relativePath: string, config: Config): Promise<void> {
-		const { join, sep, posix } = await import('path');
+		const { join, sep, posix } = await import('node:path');
 		// Windows-compatible path conversion
 		const urlPathname = join(relativePath, 'index.html').split(sep).join(posix.sep);
 
@@ -86,12 +91,14 @@ export class OutputGeneratorService implements IOutputGenerator {
 			// Try to navigate with timeout, but don't fail if it doesn't work
 			// The setContent below will overwrite anyway
 			try {
-				await page.goto(`http://localhost:${config.port}/${urlPathname}`, {
-					waitUntil: 'domcontentloaded',
-					timeout: 5000,
-				}).catch(() => {
-					// Ignore navigation errors - we'll set content directly
-				});
+				await page
+					.goto(`http://localhost:${config.port}/${urlPathname}`, {
+						waitUntil: 'domcontentloaded',
+						timeout: 5000,
+					})
+					.catch(() => {
+						// Ignore navigation errors - we'll set content directly
+					});
 			} catch {
 				// Navigation failed, continue with setContent
 			}
@@ -149,7 +156,6 @@ export class OutputGeneratorService implements IOutputGenerator {
 	 * Type guard for HTML config.
 	 */
 	private isHtmlConfig(config: Config): config is HtmlConfig {
-		return config.as_html === true;
+		return config.as_html;
 	}
 }
-

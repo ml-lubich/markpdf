@@ -1,13 +1,13 @@
+import { readFileSync, unlinkSync } from 'node:fs';
+import { resolve } from 'node:path';
 import test, { before } from 'ava';
-import { readFileSync, unlinkSync } from 'fs';
-import { resolve } from 'path';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf';
-import { TextItem } from 'pdfjs-dist/types/src/display/api';
-import { mdToPdf } from '..';
+import { type TextItem } from 'pdfjs-dist/types/src/display/api';
+import { mdToPdf } from './...js';
 
 const getPdfTextContent = async (content: Buffer) => {
-	const doc = await getDocument({ data: content }).promise;
-	const page = await doc.getPage(1);
+	const document = await getDocument({ data: content }).promise;
+	const page = await document.getPage(1);
 	const textContent = (await page.getTextContent()).items
 		.filter((item): item is TextItem => 'str' in item)
 		.map(({ str }) => str)
@@ -51,10 +51,7 @@ flowchart TD
 The flowchart should be rendered as an image in the PDF.
 `;
 
-	const pdf = await mdToPdf(
-		{ content: markdown },
-		{ dest: resolve(__dirname, 'mermaid', 'test-flowchart.pdf') },
-	);
+	const pdf = await mdToPdf({ content: markdown }, { dest: resolve(__dirname, 'mermaid', 'test-flowchart.pdf') });
 
 	t.truthy(pdf);
 	t.truthy(pdf.content instanceof Buffer);
@@ -78,10 +75,7 @@ sequenceDiagram
 \`\`\`
 `;
 
-	const pdf = await mdToPdf(
-		{ content: markdown },
-		{ dest: resolve(__dirname, 'mermaid', 'test-sequence.pdf') },
-	);
+	const pdf = await mdToPdf({ content: markdown }, { dest: resolve(__dirname, 'mermaid', 'test-sequence.pdf') });
 
 	t.truthy(pdf);
 	t.truthy(pdf.content instanceof Buffer);
@@ -185,7 +179,7 @@ test('compile full mermaid test document to pdf', async (t) => {
 
 	t.truthy(pdf);
 	t.truthy(pdf.content instanceof Buffer);
-	t.true(pdf.content.length > 10000); // Should be substantial PDF
+	t.true(pdf.content.length > 10_000); // Should be substantial PDF
 
 	// Verify PDF was created
 	t.notThrows(() => readFileSync(resolve(__dirname, 'mermaid', 'test-mermaid-api.pdf')));
@@ -207,4 +201,3 @@ graph TD
 	t.true(html.content.includes('Mermaid Chart'));
 	t.true(html.content.includes('mermaid-chart-container'));
 });
-

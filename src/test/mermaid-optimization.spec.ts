@@ -1,16 +1,16 @@
 /**
  * Tests for Mermaid Processing Optimization
- * 
+ *
  * Tests that Mermaid processing only occurs when Mermaid blocks are present,
  * and handles edge cases and negative scenarios.
  */
 
 import test from 'ava';
-import puppeteer, { Browser } from 'puppeteer';
-import { ConverterService } from '../lib/services/ConverterService';
-import { defaultConfig } from '../lib/config';
-import { ServerService } from '../lib/services/ServerService';
-import { MermaidProcessorService } from '../lib/services/MermaidProcessorService';
+import puppeteer, { type Browser } from 'puppeteer';
+import { ConverterService } from '../lib/services/ConverterService.js';
+import { defaultConfig } from '../lib/config.js';
+import { ServerService } from '../lib/services/ServerService.js';
+import { MermaidProcessorService } from '../lib/services/MermaidProcessorService.js';
 
 let browser: Browser;
 let serverService: ServerService;
@@ -207,7 +207,7 @@ test('should handle very large Mermaid diagram', async (t) => {
 		t.truthy(result);
 		t.truthy(result.content instanceof Buffer);
 		// Should complete within reasonable time
-		t.true(duration < 30000, `Should complete in <30s, took ${duration}ms`);
+		t.true(duration < 30_000, `Should complete in <30s, took ${duration}ms`);
 	} finally {
 		await serverService.stop();
 	}
@@ -221,13 +221,7 @@ test('should handle Mermaid processing timeout gracefully', async (t) => {
 
 	try {
 		// Should complete even if Mermaid takes time
-		const result = await processor.processCharts(
-			markdown,
-			browser,
-			config.basedir,
-			undefined,
-			config.port,
-		);
+		const result = await processor.processCharts(markdown, browser, config.basedir, undefined, config.port);
 
 		t.truthy(result);
 		t.truthy(result.processedMarkdown);
@@ -307,7 +301,7 @@ test('should handle case-insensitive Mermaid detection edge cases', async (t) =>
 
 			t.truthy(result);
 			t.truthy(result.content instanceof Buffer);
-			
+
 			if (testCase.shouldProcess) {
 				// Mermaid processing takes longer
 				t.true(duration > 1000, `Should take time for Mermaid processing, took ${duration}ms`);
@@ -320,4 +314,3 @@ test('should handle case-insensitive Mermaid detection edge cases', async (t) =>
 		await serverService.stop();
 	}
 });
-

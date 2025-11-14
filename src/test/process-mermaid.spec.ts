@@ -1,9 +1,9 @@
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { cleanupMermaidImages, processMermaidCharts } from '../lib/process-mermaid';
+import puppeteer, { type Browser } from 'puppeteer';
+import { cleanupMermaidImages, processMermaidCharts } from '../lib/process-mermaid.js';
 
 let browser: Browser;
 
@@ -167,16 +167,15 @@ test('processMermaidCharts should wrap images in centered container div', async 
 	// Verify the container div is present
 	t.true(result.processedMarkdown.includes('<div class="mermaid-chart-container">'));
 	t.true(result.processedMarkdown.includes('</div>'));
-	
+
 	// Verify the image is inside the container
 	const containerIndex = result.processedMarkdown.indexOf('<div class="mermaid-chart-container">');
 	const imageIndex = result.processedMarkdown.indexOf('![Mermaid Chart');
 	const closingDivIndex = result.processedMarkdown.indexOf('</div>', containerIndex);
-	
+
 	t.true(containerIndex < imageIndex);
 	t.true(imageIndex < closingDivIndex);
 
 	// Cleanup
 	await cleanupMermaidImages(result.imageFiles);
 });
-

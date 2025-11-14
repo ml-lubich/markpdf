@@ -1,11 +1,11 @@
 /**
  * Tests for MarkdownParserService
- * 
+ *
  * Tests markdown parsing and syntax highlighting.
  */
 
 import test from 'ava';
-import { MarkdownParserService } from '../lib/services/MarkdownParserService';
+import { MarkdownParserService } from '../lib/services/MarkdownParserService.js';
 
 test('parse should convert markdown to HTML', (t) => {
 	const parser = new MarkdownParserService();
@@ -47,7 +47,7 @@ test('parse should handle markdown with custom options', (t) => {
 
 test('parse should throw error for invalid markdown syntax in edge cases', (t) => {
 	const parser = new MarkdownParserService();
-	
+
 	// This should not throw for normal markdown
 	const markdown = '# Valid Markdown';
 	t.notThrows(() => {
@@ -81,4 +81,3 @@ test('parse should handle markdown with links and images', (t) => {
 	t.true(html.includes('<a'));
 	t.true(html.includes('<img'));
 });
-

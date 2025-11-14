@@ -3,8 +3,8 @@
  * Generates HTML documents from markdown content.
  */
 
-import { Config } from '../config';
-import { MarkdownParserService } from '../services/MarkdownParserService';
+import { type Config } from '../config.js';
+import { MarkdownParserService } from '../services/MarkdownParserService.js';
 
 /**
  * Generates a HTML document from a markdown string and returns it as a string.
@@ -25,4 +25,3 @@ export const getHtml = (md: string, config: Config): string => {
 	</body>
 </html>`;
 };
-

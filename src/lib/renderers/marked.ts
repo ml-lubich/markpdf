@@ -5,7 +5,7 @@
 
 import hljs from 'highlight.js';
 import { marked } from 'marked';
-import type { MarkedOptions } from '../config';
+import type { MarkedOptions } from '../config.js';
 
 /**
  * Creates a configured Marked instance with syntax highlighting support.
@@ -60,4 +60,3 @@ export const getMarked = (options: MarkedOptions, extensions: any[]) => {
 		}
 	};
 };
-

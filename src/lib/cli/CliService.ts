@@ -3,22 +3,22 @@
  * Separates CLI concerns from core conversion logic.
  */
 
+import path from 'node:path';
 import chalk from 'chalk';
 import { watch } from 'chokidar';
-// Chokidar v4 doesn't export WatchOptions, use any for now
-type WatchOptions = any;
 import getPort from 'get-port';
 import getStdin from 'get-stdin';
 import Listr from 'listr';
-import path from 'path';
-import { PackageJson } from '../..';
-import { Config, defaultConfig } from '../config';
-import { help } from './help';
-import { convertMdToPdf } from '../core/converter';
-import { ConfigService } from '../services/ConfigService';
-import { ServerService } from '../services/ServerService';
-import { OutputGeneratorService } from '../services/OutputGeneratorService';
-import { validateNodeVersion } from '../validators/node-version';
+import { type PackageJson } from '../index.js';
+import { type Config, defaultConfig } from '../config.js';
+import { convertMdToPdf } from '../core/converter.js';
+import { ConfigService } from '../services/ConfigService.js';
+import { ServerService } from '../services/ServerService.js';
+import { OutputGeneratorService } from '../services/OutputGeneratorService.js';
+import { validateNodeVersion } from '../validators/node-version.js';
+import { help } from './help.js';
+// Chokidar v4 doesn't export WatchOptions, use any for now
+type WatchOptions = any;
 
 export type CliArgs = typeof import('../../cli').cliFlags;
 
@@ -44,7 +44,7 @@ export class CliService {
 	 * @param args - Parsed CLI arguments
 	 * @param config - Base configuration
 	 */
-	public async run(args: CliArgs, config: Config = defaultConfig): Promise<void> {
+	public async run(arguments_: CliArgs, config: Config = defaultConfig): Promise<void> {
 		process.title = 'markpdf';
 
 		// Validate Node version
@@ -53,17 +53,17 @@ export class CliService {
 		}
 
 		// Handle version flag
-		if (args['--version']) {
+		if (arguments_['--version']) {
 			return this.showVersion();
 		}
 
 		// Handle help flag
-		if (args['--help']) {
+		if (arguments_['--help']) {
 			return help();
 		}
 
 		// Get input files or stdin
-		const files = (args._ as string[]) || [];
+		const files = arguments_._ || [];
 		const stdin = await getStdin();
 
 		if (files.length === 0 && !stdin) {
@@ -71,7 +71,7 @@ export class CliService {
 		}
 
 		// Load and merge configuration
-		const mergedConfig = await this.loadConfiguration(args, config);
+		const mergedConfig = await this.loadConfiguration(arguments_, config);
 
 		// Start server
 		await this.serverService.start(mergedConfig);
@@ -84,11 +84,9 @@ export class CliService {
 
 		try {
 			// Process stdin or files
-			if (stdin) {
-				await this.processStdin(stdin, mergedConfig, args);
-			} else {
-				await this.processFiles(files, mergedConfig, args, cleanup);
-			}
+			await (stdin
+				? this.processStdin(stdin, mergedConfig, arguments_)
+				: this.processFiles(files, mergedConfig, arguments_, cleanup));
 		} catch (error) {
 			await cleanup();
 			throw error;
@@ -99,8 +97,8 @@ export class CliService {
 	 * Show version information.
 	 */
 	private showVersion(): void {
-		const pkg = require('../../package.json') as PackageJson;
-		console.log(pkg.version);
+		const package_ = require('../../package.json') as PackageJson;
+		console.log(package_.version);
 	}
 
 	/**
@@ -110,25 +108,28 @@ export class CliService {
 	 * @param baseConfig - Base configuration
 	 * @returns Merged configuration
 	 */
-	private async loadConfiguration(args: CliArgs, baseConfig: Config): Promise<Config> {
+	private async loadConfiguration(arguments_: CliArgs, baseConfig: Config): Promise<Config> {
 		let config = { ...baseConfig };
 
 		// Load config file if specified
-		if (args['--config-file']) {
-			config = this.loadConfigFile(args['--config-file'] as string, config);
+		if (arguments_['--config-file']) {
+			config = this.loadConfigFile(arguments_['--config-file'], config);
 		}
 
 		// Merge CLI arguments
-		config = this.configService.mergeCliArgs(config, args as unknown as Record<string, string | string[] | boolean>);
+		config = this.configService.mergeCliArgs(
+			config,
+			arguments_ as unknown as Record<string, string | string[] | boolean>,
+		);
 
 		// Set basedir from CLI
-		if (args['--basedir']) {
-			config.basedir = args['--basedir'] as string;
+		if (arguments_['--basedir']) {
+			config.basedir = arguments_['--basedir'];
 		}
 
 		// Set port
-		const portArg = args['--port'];
-		config.port = (typeof portArg === 'number' ? portArg : undefined) ?? (await getPort());
+		const portArgument = arguments_['--port'];
+		config.port = (typeof portArgument === 'number' ? portArgument : undefined) ?? (await getPort());
 
 		return config;
 	}
@@ -158,8 +159,8 @@ export class CliService {
 	 * @param config - Configuration
 	 * @param args - CLI arguments
 	 */
-	private async processStdin(stdin: string, config: Config, args: CliArgs): Promise<void> {
-		await convertMdToPdf({ content: stdin }, config, { args });
+	private async processStdin(stdin: string, config: Config, arguments_: CliArgs): Promise<void> {
+		await convertMdToPdf({ content: stdin }, config, { args: arguments_ });
 	}
 
 	/**
@@ -173,14 +174,14 @@ export class CliService {
 	private async processFiles(
 		files: string[],
 		config: Config,
-		args: CliArgs,
+		arguments_: CliArgs,
 		cleanup: () => Promise<void>,
 	): Promise<void> {
 		const getListrTask = (file: string) => ({
-			title: `generating ${args['--as-html'] ? 'HTML' : 'PDF'} from ${chalk.underline(file)}`,
+			title: `generating ${arguments_['--as-html'] ? 'HTML' : 'PDF'} from ${chalk.underline(file)}`,
 			task: async () => {
 				try {
-					await convertMdToPdf({ path: file }, config, { args });
+					await convertMdToPdf({ path: file }, config, { args: arguments_ });
 				} catch (error) {
 					// Format error message for user
 					const errorMessage = this.formatErrorMessage(error, file);
@@ -194,8 +195,8 @@ export class CliService {
 			await new Listr(files.map(getListrTask), { concurrent: true, exitOnError: false }).run();
 
 			// Handle watch mode
-			if (args['--watch']) {
-				await this.startWatchMode(files, config, args, getListrTask);
+			if (arguments_['--watch']) {
+				await this.startWatchMode(files, config, arguments_, getListrTask);
 			}
 		} catch (error) {
 			// Re-throw with formatted message
@@ -203,7 +204,7 @@ export class CliService {
 			throw new Error(`Failed to process files: ${errorMessage}`);
 		} finally {
 			// Always cleanup (except in watch mode)
-			if (!args['--watch']) {
+			if (!arguments_['--watch']) {
 				await cleanup();
 			}
 		}
@@ -220,14 +221,12 @@ export class CliService {
 	private async startWatchMode(
 		files: string[],
 		_config: Config,
-		args: CliArgs,
+		arguments_: CliArgs,
 		getListrTask: (file: string) => { title: string; task: () => Promise<void> },
 	): Promise<void> {
 		console.log(chalk.bgBlue('\n watching for changes \n'));
 
-		const watchOptions = args['--watch-options']
-			? (JSON.parse(args['--watch-options'] as string) as WatchOptions)
-			: {};
+		const watchOptions = arguments_['--watch-options'] ? JSON.parse(arguments_['--watch-options']) : {};
 
 		const watcher = watch(files, watchOptions);
 		(watcher as any).on('change', async (file: string) => {
@@ -251,32 +250,32 @@ export class CliService {
 		if (error instanceof Error) {
 			// Check if it's a domain error with a user-friendly message
 			if ('code' in error && 'message' in error) {
-				const message = error.message;
+				const { message } = error;
 				// Remove technical details and make it user-friendly
 				if (message.includes('File not found')) {
 					return message;
 				}
+
 				if (message.includes('Permission denied')) {
 					return message;
 				}
+
 				if (message.includes('Failed to read markdown file')) {
 					return message;
 				}
+
 				if (message.includes('Failed to create')) {
 					return message;
 				}
+
 				// For other errors, provide context
-				return file 
-					? `Error processing "${file}": ${message}`
-					: message;
+				return file ? `Error processing "${file}": ${message}` : message;
 			}
-			return file 
-				? `Error processing "${file}": ${error.message}`
-				: error.message;
+
+			return file ? `Error processing "${file}": ${error.message}` : error.message;
 		}
-		return file 
-			? `Unknown error processing "${file}"`
-			: 'Unknown error occurred';
+
+		return file ? `Unknown error processing "${file}"` : 'Unknown error occurred';
 	}
 
 	/**
@@ -287,4 +286,3 @@ export class CliService {
 		await this.serverService.stop();
 	}
 }
-

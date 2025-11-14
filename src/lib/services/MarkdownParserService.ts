@@ -5,8 +5,8 @@
 
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import { IMarkdownParser } from '../interfaces';
-import { MarkedOptions } from '../config';
+import { type IMarkdownParser } from '../interfaces.js';
+import { type MarkedOptions } from '../config.js';
 
 export class MarkdownParserService implements IMarkdownParser {
 	private readonly options: MarkedOptions;
@@ -53,10 +53,7 @@ export class MarkdownParserService implements IMarkdownParser {
 		try {
 			return marked(markdown);
 		} catch (error) {
-			throw new Error(
-				`Failed to parse markdown: ${error instanceof Error ? error.message : String(error)}`,
-			);
+			throw new Error(`Failed to parse markdown: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	}
 }
-

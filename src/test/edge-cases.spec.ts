@@ -1,5 +1,5 @@
 import test from 'ava';
-import { mdToPdf } from '..';
+import { mdToPdf } from './...js';
 
 test('should handle empty markdown content', async (t) => {
 	const pdf = await mdToPdf({ content: '' });
@@ -17,7 +17,8 @@ test('should handle markdown with only whitespace', async (t) => {
 });
 
 test('should handle very long markdown content', async (t) => {
-	const longContent = '# Test\n\n' + 'This is a very long line. '.repeat(1000) + '\n\n' + '# Section\n\n' + 'More content. '.repeat(1000);
+	const longContent =
+		'# Test\n\n' + 'This is a very long line. '.repeat(1000) + '\n\n' + '# Section\n\n' + 'More content. '.repeat(1000);
 
 	const pdf = await mdToPdf({ content: longContent });
 
@@ -204,4 +205,3 @@ This uses a custom stylesheet.
 	t.truthy(pdf);
 	t.truthy(pdf.content instanceof Buffer);
 });
-

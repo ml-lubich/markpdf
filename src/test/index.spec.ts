@@ -1,6 +1,6 @@
+import { resolve } from 'node:path';
 import test from 'ava';
-import { resolve } from 'path';
-import { mdToPdf } from '..';
+import { mdToPdf } from './...js';
 
 test('mdToPdf should throw error when input is missing both content and path', async (t) => {
 	await t.throwsAsync(
@@ -95,4 +95,3 @@ test('mdToPdf should handle devtools option', async (t) => {
 	// The actual behavior depends on implementation
 	t.truthy(result === undefined || result.content instanceof Buffer);
 });
-

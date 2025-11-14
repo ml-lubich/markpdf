@@ -1,24 +1,24 @@
 /**
  * Comprehensive tests for ConverterService
- * 
+ *
  * Tests the main conversion service with edge cases, negative scenarios,
  * and error handling. Includes tests for logger integration, error types,
  * and boundary conditions.
  */
 
+import { promises as fs } from 'node:fs';
+import { resolve, join } from 'node:path';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { resolve, join } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { createConverterService } from '../lib/services/ConverterService';
-import { defaultConfig } from '../lib/config';
-import { ServerService } from '../lib/services/ServerService';
-import { SilentLogger } from '../lib/domain/Logger';
-import { ValidationError, OutputGenerationError } from '../lib/domain/errors';
-import { MermaidProcessorService } from '../lib/services/MermaidProcessorService';
-import { OutputGeneratorService } from '../lib/services/OutputGeneratorService';
-import { FileService } from '../lib/services/FileService';
-import { ConfigService } from '../lib/services/ConfigService';
+import puppeteer, { type Browser } from 'puppeteer';
+import { createConverterService } from '../lib/services/ConverterService.js';
+import { defaultConfig } from '../lib/config.js';
+import { ServerService } from '../lib/services/ServerService.js';
+import { SilentLogger } from '../lib/domain/Logger.js';
+import { ValidationError, OutputGenerationError } from '../lib/domain/errors.js';
+import { MermaidProcessorService } from '../lib/services/MermaidProcessorService.js';
+import { OutputGeneratorService } from '../lib/services/OutputGeneratorService.js';
+import { FileService } from '../lib/services/FileService.js';
+import { ConfigService } from '../lib/services/ConfigService.js';
 
 let browser: Browser;
 let serverService: ServerService;
@@ -103,9 +103,12 @@ test('ConverterService should throw ValidationError for invalid input', async (t
 	await serverService.start(config);
 
 	try {
-		await t.throwsAsync(async () => {
-			await converter.convert({} as any, config, browser);
-		}, { instanceOf: ValidationError, message: /Input must have either path or content/ });
+		await t.throwsAsync(
+			async () => {
+				await converter.convert({} as any, config, browser);
+			},
+			{ instanceOf: ValidationError, message: /Input must have either path or content/ },
+		);
 	} finally {
 		await serverService.stop();
 	}
@@ -117,10 +120,13 @@ test('ConverterService should throw ValidationError when neither path nor conten
 	await serverService.start(config);
 
 	try {
-		await t.throwsAsync(async () => {
-			// @ts-expect-error - intentionally testing invalid input
-			await converter.convert({ path: undefined, content: undefined }, config, browser);
-		}, { instanceOf: ValidationError });
+		await t.throwsAsync(
+			async () => {
+				// @ts-expect-error - intentionally testing invalid input
+				await converter.convert({ path: undefined, content: undefined }, config, browser);
+			},
+			{ instanceOf: ValidationError },
+		);
 	} finally {
 		await serverService.stop();
 	}
@@ -132,9 +138,12 @@ test('ConverterService should throw ValidationError for non-existent file', asyn
 	await serverService.start(config);
 
 	try {
-		await t.throwsAsync(async () => {
-			await converter.convert({ path: '/nonexistent/file.md' }, config, browser);
-		}, { instanceOf: ValidationError });
+		await t.throwsAsync(
+			async () => {
+				await converter.convert({ path: '/nonexistent/file.md' }, config, browser);
+			},
+			{ instanceOf: ValidationError },
+		);
 	} finally {
 		await serverService.stop();
 	}
@@ -144,23 +153,26 @@ test('ConverterService should throw OutputGenerationError when output generation
 	// Create a converter with a mock output generator that always fails
 	const mockOutputGenerator = {
 		generate: async () => undefined,
-		closeBrowser: async () => {},
+		async closeBrowser() {},
 	};
-	
+
 	const converter = new ConverterService(
 		new MermaidProcessorService(),
 		mockOutputGenerator as any,
 		new FileService(),
 		new ConfigService(),
 	);
-	
+
 	const config = { ...defaultConfig, port: getNextPort(), devtools: false };
 	await serverService.start(config);
 
 	try {
-		await t.throwsAsync(async () => {
-			await converter.convert({ content: '# Test' }, config, browser);
-		}, { instanceOf: OutputGenerationError });
+		await t.throwsAsync(
+			async () => {
+				await converter.convert({ content: '# Test' }, config, browser);
+			},
+			{ instanceOf: OutputGenerationError },
+		);
 	} finally {
 		await serverService.stop();
 	}
@@ -212,9 +224,12 @@ test('ConverterService should write output to file', async (t) => {
 		const result = await converter.convert({ content: '# Test' }, config, browser);
 
 		t.is(result.filename, outputPath);
-		
+
 		// Verify file exists
-		const exists = await fs.access(outputPath).then(() => true).catch(() => false);
+		const exists = await fs
+			.access(outputPath)
+			.then(() => true)
+			.catch(() => false);
 		t.true(exists);
 
 		// Cleanup
@@ -241,9 +256,8 @@ test('ConverterService should write to stdout when dest is stdout', async (t) =>
 
 test('ConverterService cleanup should close browser', async (t) => {
 	const converter = createConverterService();
-	
+
 	await t.notThrowsAsync(async () => {
 		await converter.cleanup();
 	});
 });
-

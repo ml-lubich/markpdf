@@ -1,15 +1,15 @@
+import { EOL } from 'node:os';
+import { posix, resolve, sep } from 'node:path';
 import test from 'ava';
 import { Renderer } from 'marked';
-import { EOL } from 'os';
-import { posix, resolve, sep } from 'path';
-import { defaultConfig } from '../lib/config';
-import { getHtml } from '../lib/get-html';
-import { getMarked } from '../lib/get-marked-with-highlighter';
-import { getOutputFilePath } from '../lib/get-output-file-path';
-import { getDir, getMarginObject } from '../lib/helpers';
-import { isHttpUrl } from '../lib/is-http-url';
-import { isMdFile } from '../lib/is-md-file';
-import { readFile } from '../lib/read-file';
+import { defaultConfig } from '../lib/config.js';
+import { getHtml } from '../lib/get-html.js';
+import { getMarked } from '../lib/get-marked-with-highlighter.js';
+import { getOutputFilePath } from '../lib/get-output-file-path.js';
+import { getDir, getMarginObject } from '../lib/helpers.js';
+import { isHttpUrl } from '../lib/is-http-url.js';
+import { isMdFile } from '../lib/is-md-file.js';
+import { readFile } from '../lib/read-file.js';
 
 // --
 // config
@@ -47,25 +47,25 @@ test('getMarginObject should be able to handle all valid CSS margin inputs', (t)
 // get-html
 
 test('getHtml should return a valid html document', (t) => {
-	const html = getHtml('', defaultConfig).replace(/\n/g, '');
+	const html = getHtml('', defaultConfig).replaceAll('\n', '');
 
 	t.regex(html, /<!DOCTYPE html>.*<html>.*<head>.*<body class="">.*<\/body>.*<\/html>/);
 });
 
 test('getHtml should inject rendered markdown', (t) => {
-	const html = getHtml('# Foo', defaultConfig).replace(/\n/g, '');
+	const html = getHtml('# Foo', defaultConfig).replaceAll('\n', '');
 
 	t.regex(html, /<body class="">\s*<h1 id="foo">Foo<\/h1>\s*<\/body>/);
 });
 
 test('getHtml should inject body classes', (t) => {
-	const html = getHtml('', { ...defaultConfig, body_class: ['foo', 'bar'] }).replace(/\n/g, '');
+	const html = getHtml('', { ...defaultConfig, body_class: ['foo', 'bar'] }).replaceAll('\n', '');
 
 	t.regex(html, /<body class="foo bar">/);
 });
 
 test('getHtml should have the title set', (t) => {
-	const html = getHtml('', { ...defaultConfig, document_title: 'Foo' }).replace(/\n/g, '');
+	const html = getHtml('', { ...defaultConfig, document_title: 'Foo' }).replaceAll('\n', '');
 
 	t.regex(html, /<title>Foo<\/title>/);
 });
@@ -90,7 +90,6 @@ test('getMarked should highlight unknown code as plaintext', (t) => {
 test('getMarked should accept a custom renderer', (t) => {
 	const renderer = new Renderer();
 
-	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 	renderer.link = (href, _, text) => `<a class="custom" href="${href}">${text}</a>`;
 
 	const marked = getMarked({ renderer }, []);

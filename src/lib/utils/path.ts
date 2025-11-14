@@ -3,7 +3,7 @@
  * Pure utility functions for path manipulation and directory operations.
  */
 
-import { parse, resolve } from 'path';
+import { parse, resolve } from 'node:path';
 
 /**
  * Get the directory that a file is in.
@@ -14,4 +14,3 @@ import { parse, resolve } from 'path';
  * @returns Absolute path to the directory containing the file
  */
 export const getDir = (filePath: string): string => resolve(parse(filePath).dir);
-

@@ -4,4 +4,4 @@
  * @deprecated Import from './renderers/html' instead
  */
 
-export * from './renderers/html';
+export * from './renderers/html.js';

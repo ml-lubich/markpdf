@@ -4,4 +4,4 @@
  * @deprecated Import from './config/config' instead
  */
 
-export * from './config/config';
+export * from './config/config.js';

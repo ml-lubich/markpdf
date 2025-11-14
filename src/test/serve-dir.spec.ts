@@ -1,9 +1,9 @@
+import { Server } from 'node:http';
+import { resolve } from 'node:path';
 import test from 'ava';
-import { Server } from 'http';
-import { resolve } from 'path';
-import { closeServer, serveDirectory } from '../lib/serve-dir';
-import { defaultConfig } from '../lib/config';
 import getPort from 'get-port';
+import { closeServer, serveDirectory } from '../lib/serve-dir.js';
+import { defaultConfig } from '../lib/config.js';
 
 test('serveDirectory should start a server on the specified port', async (t) => {
 	const port = await getPort();
@@ -83,18 +83,21 @@ test('closeServer should reject promise when server.close has an error', async (
 	};
 
 	const server = await serveDirectory(config);
-	
+
 	// Create a mock server that will error on close
 	const mockServer = {
-		close: (callback: (error?: Error) => void) => {
+		close(callback: (error?: Error) => void) {
 			callback(new Error('Test error'));
 		},
 	} as any;
 
 	// Test that closeServer properly rejects on error
-	await t.throwsAsync(async () => {
-		await closeServer(mockServer);
-	}, { message: 'Test error' });
+	await t.throwsAsync(
+		async () => {
+			await closeServer(mockServer);
+		},
+		{ message: 'Test error' },
+	);
 
 	// Clean up real server
 	await closeServer(server);
@@ -117,4 +120,3 @@ test('serveDirectory should serve files from basedir', async (t) => {
 		await closeServer(server);
 	}
 });
-

@@ -1,18 +1,18 @@
 /**
  * Tests for Parallel Processing Scenarios
- * 
+ *
  * Tests that Mermaid chart processing works correctly when multiple
  * markpdf jobs run simultaneously, ensuring no file conflicts occur.
  */
 
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { MermaidProcessorService } from '../lib/services/MermaidProcessorService';
-import { generateContentHash, generateMermaidFilename } from '../lib/utils/hash';
-import { MERMAID_CONSTANTS } from '../lib/constants';
+import puppeteer, { type Browser } from 'puppeteer';
+import { MermaidProcessorService } from '../lib/services/MermaidProcessorService.js';
+import { generateContentHash, generateMermaidFilename } from '../lib/utils/hash.js';
+import { MERMAID_CONSTANTS } from '../lib/constants.js';
 
 let browser: Browser;
 
@@ -60,7 +60,7 @@ test('parallel processes should generate unique filenames for same content', asy
 test('parallel processes should not overwrite each other files', async (t) => {
 	const processor1 = new MermaidProcessorService();
 	const processor2 = new MermaidProcessorService();
-	
+
 	const code1 = 'graph TD\n    A --> B';
 	const code2 = 'graph TD\n    A --> C';
 	const markdown1 = `# Test\n\n\`\`\`mermaid\n${code1}\n\`\`\`\n\nDone.`;
@@ -82,8 +82,14 @@ test('parallel processes should not overwrite each other files', async (t) => {
 	t.not(filename1, filename2);
 
 	// Verify both files exist and are different
-	const file1Exists = await fs.access(result1.imageFiles[0]!).then(() => true).catch(() => false);
-	const file2Exists = await fs.access(result2.imageFiles[0]!).then(() => true).catch(() => false);
+	const file1Exists = await fs
+		.access(result1.imageFiles[0]!)
+		.then(() => true)
+		.catch(() => false);
+	const file2Exists = await fs
+		.access(result2.imageFiles[0]!)
+		.then(() => true)
+		.catch(() => false);
 
 	t.true(file1Exists);
 	t.true(file2Exists);
@@ -132,7 +138,7 @@ Done.`;
 	const hashes = result.imageFiles.map((file) => {
 		const filename = file.split(/[/\\]/).pop()!;
 		// Extract hash from filename: mermaid-{hash}-{index}.png
-		const match = filename.match(/^mermaid-([a-f0-9]+)-\d+\.png$/);
+		const match = /^mermaid-([a-f\d]+)-\d+\.png$/.exec(filename);
 		return match ? match[1] : null;
 	});
 
@@ -193,7 +199,10 @@ test('concurrent file writes should not conflict', async (t) => {
 	await Promise.all(writePromises);
 
 	// File should exist (last write wins, but that's okay for our use case)
-	const exists = await fs.access(filePath).then(() => true).catch(() => false);
+	const exists = await fs
+		.access(filePath)
+		.then(() => true)
+		.catch(() => false);
 	t.true(exists);
 
 	// Cleanup
@@ -224,15 +233,14 @@ test('empty content should still generate valid hash', (t) => {
 	const hash = generateContentHash('');
 	t.truthy(hash);
 	t.is(hash.length, 16);
-	t.true(/^[a-f0-9]+$/.test(hash));
+	t.regex(hash, /^[a-f\d]+$/);
 });
 
 test('very long content should generate consistent hash', (t) => {
-	const longContent = 'graph TD\n' + Array(1000).fill('    A --> B').join('\n');
+	const longContent = 'graph TD\n' + Array.from({ length: 1000 }).fill('    A --> B').join('\n');
 	const hash1 = generateContentHash(longContent);
 	const hash2 = generateContentHash(longContent);
 
 	t.is(hash1, hash2);
 	t.is(hash1.length, 16);
 });
-

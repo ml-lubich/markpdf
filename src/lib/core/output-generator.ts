@@ -3,24 +3,24 @@
  * Generates PDF or HTML output from HTML content using Puppeteer.
  */
 
-import { join, posix, sep } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { Config } from '../config';
-import { isHttpUrl } from '../utils/url';
+import { join, posix, sep } from 'node:path';
+import puppeteer, { type Browser } from 'puppeteer';
+import { type Config } from '../config.js';
+import { isHttpUrl } from '../utils/url.js';
 
 export type Output = PdfOutput | HtmlOutput;
 
-export interface PdfOutput extends BasicOutput {
+export type PdfOutput = {
 	content: Buffer;
-}
+} & BasicOutput;
 
-export interface HtmlOutput extends BasicOutput {
+export type HtmlOutput = {
 	content: string;
-}
+} & BasicOutput;
 
-interface BasicOutput {
+type BasicOutput = {
 	filename: string | undefined;
-}
+};
 
 /**
  * Store a single browser instance reference so that we can re-use it.
@@ -49,20 +49,18 @@ export async function generateOutput(
 	html: string,
 	relativePath: string,
 	config: Config,
-	browserRef?: Browser,
+	browserReference?: Browser,
 ): Promise<Output> {
 	async function getBrowser() {
-		if (browserRef) {
-			return browserRef;
+		if (browserReference) {
+			return browserReference;
 		}
 
-		if (!browserPromise) {
-			browserPromise = puppeteer.launch({
-				headless: config.launch_options?.headless ?? 'new',
-				devtools: config.devtools,
-				...config.launch_options,
-			} as any);
-		}
+		browserPromise ||= puppeteer.launch({
+			headless: config.launch_options?.headless ?? 'new',
+			devtools: config.devtools,
+			...config.launch_options,
+		} as any);
 
 		return browserPromise;
 	}
@@ -78,16 +76,19 @@ export async function generateOutput(
 	// The setContent below will overwrite anyway
 	if (config.port) {
 		try {
-			await page.goto(`http://localhost:${config.port}/${urlPathname}`, {
-				waitUntil: 'domcontentloaded',
-				timeout: 5000,
-			}).catch(() => {
-				// Ignore navigation errors - we'll set content directly
-			});
+			await page
+				.goto(`http://localhost:${config.port}/${urlPathname}`, {
+					waitUntil: 'domcontentloaded',
+					timeout: 5000,
+				})
+				.catch(() => {
+					// Ignore navigation errors - we'll set content directly
+				});
 		} catch {
 			// Navigation failed, continue with setContent
 		}
 	}
+
 	await page.setContent(html); // overwrite the page content with what was generated from the markdown
 
 	for (const stylesheet of config.stylesheet) {
@@ -126,4 +127,3 @@ export async function generateOutput(
 		content: outputFileContent,
 	} as Output;
 }
-

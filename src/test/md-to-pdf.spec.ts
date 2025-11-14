@@ -1,11 +1,11 @@
+import { promises as fs } from 'node:fs';
+import { resolve } from 'node:path';
+import { type Server } from 'node:http';
+import puppeteer, { type Browser } from 'puppeteer';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { resolve } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { Server } from 'http';
-import { defaultConfig } from '../lib/config';
-import { convertMdToPdf } from '../lib/md-to-pdf';
-import { closeServer, serveDirectory } from '../lib/serve-dir';
+import { defaultConfig } from '../lib/config.js';
+import { convertMdToPdf } from '../lib/md-to-pdf.js';
+import { closeServer, serveDirectory } from '../lib/serve-dir.js';
 
 let browser: Browser;
 let servers: Server[] = [];
@@ -197,12 +197,12 @@ test('convertMdToPdf should merge CLI args into config', async (t) => {
 	const config = { ...defaultConfig, port: 3008 };
 	const server = await serveDirectory(config);
 	servers.push(server);
-	const args = {
+	const arguments_ = {
 		'--document-title': 'CLI Title',
 		'--marked-options': JSON.stringify({ breaks: true }),
 	};
 
-	const result = await convertMdToPdf({ content }, config, { args, browser });
+	const result = await convertMdToPdf({ content }, config, { args: arguments_, browser });
 
 	t.truthy(result.content);
 	t.is(config.document_title, 'CLI Title');
@@ -257,7 +257,7 @@ test('convertMdToPdf should write to file when filename is provided', async (t) 
 	const result = await convertMdToPdf({ content }, config, { browser });
 
 	t.is(result.filename, outputPath);
-	t.notThrows(() => fs.access(outputPath));
+	t.notThrows(async () => fs.access(outputPath));
 
 	// Cleanup
 	await fs.unlink(outputPath).catch(() => {
@@ -287,11 +287,11 @@ test('convertMdToPdf should handle md_file_encoding from args', async (t) => {
 	const config = { ...defaultConfig, port: 3013, basedir: resolve(__dirname, 'basic') };
 	const server = await serveDirectory(config);
 	servers.push(server);
-	const args = {
+	const arguments_ = {
 		'--md-file-encoding': 'utf-8',
 	};
 
-	const result = await convertMdToPdf({ path: testMdPath }, config, { args, browser });
+	const result = await convertMdToPdf({ path: testMdPath }, config, { args: arguments_, browser });
 
 	t.truthy(result.content);
 
@@ -309,11 +309,11 @@ title: Test
 	const config = { ...defaultConfig, port: 3014 };
 	const server = await serveDirectory(config);
 	servers.push(server);
-	const args = {
+	const arguments_ = {
 		'--gray-matter-options': JSON.stringify({ delimiters: '---' }),
 	};
 
-	const result = await convertMdToPdf({ content }, config, { args, browser });
+	const result = await convertMdToPdf({ content }, config, { args: arguments_, browser });
 
 	t.truthy(result.content);
 
@@ -392,9 +392,12 @@ test('convertMdToPdf should write Buffer content to file', async (t) => {
 
 	t.is(result.filename, outputPath);
 	t.truthy(result.content instanceof Buffer);
-	
+
 	// Verify file was written
-	const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
+	const fileExists = await fs
+		.access(outputPath)
+		.then(() => true)
+		.catch(() => false);
 	t.true(fileExists);
 
 	// Cleanup
@@ -430,4 +433,3 @@ test('convertMdToPdf should handle cleanup of Mermaid images', async (t) => {
 	await closeServer(server);
 	servers = servers.filter((s) => s !== server);
 });
-

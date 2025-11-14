@@ -3,6 +3,5 @@
  * Central export point for server-related functionality.
  */
 
-export * from './directory';
-export * from '../services/ServerService';
-
+export * from './directory.js';
+export * from '../services/ServerService.js';

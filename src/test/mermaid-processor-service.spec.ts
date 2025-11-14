@@ -1,15 +1,15 @@
 /**
  * Tests for MermaidProcessorService
- * 
+ *
  * Tests Mermaid diagram processing and image generation.
  */
 
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'ava';
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import puppeteer, { Browser } from 'puppeteer';
-import { MermaidProcessorService } from '../lib/services/MermaidProcessorService';
+import puppeteer, { type Browser } from 'puppeteer';
+import { MermaidProcessorService } from '../lib/services/MermaidProcessorService.js';
 
 let browser: Browser;
 
@@ -80,7 +80,7 @@ test('processCharts should continue processing after one diagram fails', async (
 
 	// Should have at least processed one diagram
 	t.true(result.imageFiles.length >= 0);
-	
+
 	// Cleanup
 	for (const imageFile of result.imageFiles) {
 		await fs.unlink(imageFile).catch(() => {});
@@ -100,3 +100,67 @@ test('processCharts should use server port for image URLs when provided', async 
 	}
 });
 
+test('processCharts should NOT process markdown with no Mermaid blocks', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Hello World\n\nThis is regular markdown content.\n\n\`\`\`javascript\nconsole.log('hello');\n\`\`\`\n\nMore content here.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd());
+
+	t.is(result.processedMarkdown, markdown);
+	t.is(result.imageFiles.length, 0);
+	t.is(result.warnings.length, 0);
+});
+
+test('processCharts should NOT process non-Mermaid code blocks', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Test\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n\n\`\`\`python\ndef hello():\n    print("world")\n\`\`\`\n\n\`\`\`json\n{"key": "value"}\n\`\`\``;
+	const result = await processor.processCharts(markdown, browser, process.cwd());
+
+	t.is(result.processedMarkdown, markdown);
+	t.is(result.imageFiles.length, 0);
+	t.is(result.warnings.length, 0);
+});
+
+test('processCharts should only process Mermaid blocks, not other code blocks', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Test\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n\n\`\`\`mermaid\ngraph TD\n    A --> B\n\`\`\`\n\n\`\`\`python\ndef hello():\n    pass\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 8004);
+
+	t.not(result.processedMarkdown, markdown);
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+	t.true(result.processedMarkdown.includes('![Mermaid Chart 1]'));
+	t.true(result.processedMarkdown.includes('```javascript'));
+	t.true(result.processedMarkdown.includes('```python'));
+	
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle markdown with mixed Mermaid and non-Mermaid blocks', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Test\n\nSome text.\n\n\`\`\`mermaid\nsequenceDiagram\n    A->>B: Hello\n\`\`\`\n\nCode example:\n\n\`\`\`typescript\ninterface User {\n  name: string;\n}\n\`\`\`\n\nAnother diagram:\n\n\`\`\`mermaid\ngantt\n    title Project Timeline\n\`\`\``;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 8005);
+
+	t.is(result.imageFiles.length, 2);
+	t.true(result.processedMarkdown.includes('![Mermaid Chart 1]'));
+	t.true(result.processedMarkdown.includes('![Mermaid Chart 2]'));
+	t.true(result.processedMarkdown.includes('```typescript'));
+	t.is(result.warnings.length, 0);
+	
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle markdown with only regular code blocks', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Code Examples\n\n\`\`\`bash\nnpm install markpdf\n\`\`\`\n\n\`\`\`yaml\nname: markpdf\nversion: 1.0.0\n\`\`\`\n\nNo Mermaid here!`;
+	const result = await processor.processCharts(markdown, browser, process.cwd());
+
+	t.is(result.processedMarkdown, markdown);
+	t.is(result.imageFiles.length, 0);
+	t.is(result.warnings.length, 0);
+});

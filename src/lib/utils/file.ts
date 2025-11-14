@@ -3,8 +3,8 @@
  * Pure utility functions for file system operations and file type detection.
  */
 
-import { promises as fs } from 'fs';
-import { join, parse } from 'path';
+import { promises as fs } from 'node:fs';
+import { join, parse } from 'node:path';
 
 /**
  * Regular expression matching markdown file extensions.
@@ -49,4 +49,3 @@ export const getOutputFilePath = (mdFilePath: string, extension: 'html' | 'pdf')
 	const { dir, name } = parse(mdFilePath);
 	return join(dir, `${name}.${extension}`);
 };
-

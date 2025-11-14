@@ -1,6 +1,6 @@
 /**
  * Logger interface for dependency inversion.
- * 
+ *
  * Following Clean Architecture principles, services should not depend on
  * concrete implementations (like console). Instead, they depend on abstractions.
  * This allows us to swap implementations (console, file logger, structured logger, etc.)
@@ -20,32 +20,32 @@ export enum LogLevel {
 /**
  * Logger interface that all loggers must implement.
  */
-export interface ILogger {
+export type ILogger = {
 	/**
 	 * Log a debug message.
 	 */
-	debug(message: string, ...args: unknown[]): void;
-	
+	debug(message: string, ...arguments_: unknown[]): void;
+
 	/**
 	 * Log an info message.
 	 */
-	info(message: string, ...args: unknown[]): void;
-	
+	info(message: string, ...arguments_: unknown[]): void;
+
 	/**
 	 * Log a warning message.
 	 */
-	warn(message: string, ...args: unknown[]): void;
-	
+	warn(message: string, ...arguments_: unknown[]): void;
+
 	/**
 	 * Log an error message.
 	 */
-	error(message: string, error?: Error, ...args: unknown[]): void;
-	
+	error(message: string, error?: Error, ...arguments_: unknown[]): void;
+
 	/**
 	 * Check if a log level is enabled.
 	 */
 	isLevelEnabled(level: LogLevel): boolean;
-}
+};
 
 /**
  * Console logger implementation.
@@ -53,31 +53,31 @@ export interface ILogger {
  */
 export class ConsoleLogger implements ILogger {
 	constructor(private readonly minLevel: LogLevel = LogLevel.INFO) {}
-	
-	debug(message: string, ...args: unknown[]): void {
+
+	debug(message: string, ...arguments_: unknown[]): void {
 		if (this.isLevelEnabled(LogLevel.DEBUG)) {
-			console.debug(`[DEBUG] ${message}`, ...args);
+			console.debug(`[DEBUG] ${message}`, ...arguments_);
 		}
 	}
-	
-	info(message: string, ...args: unknown[]): void {
+
+	info(message: string, ...arguments_: unknown[]): void {
 		if (this.isLevelEnabled(LogLevel.INFO)) {
-			console.info(`[INFO] ${message}`, ...args);
+			console.info(`[INFO] ${message}`, ...arguments_);
 		}
 	}
-	
-	warn(message: string, ...args: unknown[]): void {
+
+	warn(message: string, ...arguments_: unknown[]): void {
 		if (this.isLevelEnabled(LogLevel.WARN)) {
-			console.warn(`[WARN] ${message}`, ...args);
+			console.warn(`[WARN] ${message}`, ...arguments_);
 		}
 	}
-	
-	error(message: string, error?: Error, ...args: unknown[]): void {
+
+	error(message: string, error?: Error, ...arguments_: unknown[]): void {
 		if (this.isLevelEnabled(LogLevel.ERROR)) {
-			console.error(`[ERROR] ${message}`, error, ...args);
+			console.error(`[ERROR] ${message}`, error, ...arguments_);
 		}
 	}
-	
+
 	isLevelEnabled(level: LogLevel): boolean {
 		const levels = [LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR];
 		const minLevelIndex = levels.indexOf(this.minLevel);
@@ -94,19 +94,19 @@ export class SilentLogger implements ILogger {
 	debug(): void {
 		// Silent
 	}
-	
+
 	info(): void {
 		// Silent
 	}
-	
+
 	warn(): void {
 		// Silent
 	}
-	
+
 	error(): void {
 		// Silent
 	}
-	
+
 	isLevelEnabled(): boolean {
 		return false;
 	}
@@ -117,4 +117,3 @@ export class SilentLogger implements ILogger {
  * Can be replaced for testing or different environments.
  */
 export const defaultLogger: ILogger = new ConsoleLogger(LogLevel.INFO);
-

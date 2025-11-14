@@ -2,22 +2,22 @@
 
 import getPort from 'get-port';
 import puppeteer from 'puppeteer';
-import { Config, defaultConfig, HtmlConfig, PdfConfig } from './lib/config';
-import { HtmlOutput, Output, PdfOutput } from './lib/core/output-generator';
-import { getDir } from './lib/utils/path';
-import { convertMdToPdf } from './lib/core/converter';
-import { ServerService } from './lib/services/ServerService';
-import { OutputGeneratorService } from './lib/services/OutputGeneratorService';
+import { type Config, defaultConfig, type HtmlConfig, type PdfConfig } from './lib/config.js';
+import { type HtmlOutput, type Output, type PdfOutput } from './lib/core/output-generator.js';
+import { getDir } from './lib/utils/path.js';
+import { convertMdToPdf } from './lib/core/converter.js';
+import { ServerService } from './lib/services/ServerService.js';
+import { OutputGeneratorService } from './lib/services/OutputGeneratorService.js';
 
 type Input = ContentInput | PathInput;
 
-interface ContentInput {
+type ContentInput = {
 	content: string;
-}
+};
 
-interface PathInput {
+type PathInput = {
 	path: string;
-}
+};
 
 const hasContent = (input: Input): input is ContentInput => 'content' in input;
 const hasPath = (input: Input): input is PathInput => 'path' in input;
@@ -58,17 +58,11 @@ export async function mdToPdf(input: Input, config: Partial<Config> = {}): Promi
 		throw new Error('The input is missing one of the properties "content" or "path".');
 	}
 
-	if (!config.port) {
-		config.port = await getPort();
-	}
+	config.port ||= await getPort();
 
-	if (!config.basedir) {
-		config.basedir = 'path' in input ? getDir(input.path) : process.cwd();
-	}
+	config.basedir ||= 'path' in input ? getDir(input.path) : process.cwd();
 
-	if (!config.dest) {
-		config.dest = '';
-	}
+	config.dest ||= '';
 
 	const mergedConfig: Config = {
 		...defaultConfig,
@@ -101,9 +95,9 @@ export async function mdToPdf(input: Input, config: Partial<Config> = {}): Promi
 
 export default mdToPdf;
 
-export interface PackageJson {
+export type PackageJson = {
 	engines: {
 		node: string;
 	};
 	version: string;
-}
+};

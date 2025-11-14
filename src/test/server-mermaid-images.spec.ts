@@ -1,23 +1,23 @@
 /**
  * Tests for ServerService - Mermaid Image Serving
- * 
+ *
  * Tests edge cases and negative scenarios for serving Mermaid images
  * from the temporary directory, including Windows compatibility.
  */
 
+import { get } from 'node:http';
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'ava';
-import { get } from 'http';
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import { ServerService } from '../lib/services/ServerService';
-import { defaultConfig } from '../lib/config';
-import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../lib/config/constants';
+import { ServerService } from '../lib/services/ServerService.js';
+import { defaultConfig } from '../lib/config.js';
+import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../lib/config/constants.js';
 
 /**
  * Helper to make HTTP GET request
  */
-function httpGet(url: string): Promise<{ status: number; headers: any; body: Buffer }> {
+async function httpGet(url: string): Promise<{ status: number; headers: any; body: Buffer }> {
 	return new Promise((resolve, reject) => {
 		get(url, (res) => {
 			const chunks: Buffer[] = [];
@@ -52,8 +52,10 @@ test('should serve Mermaid images from temp directory', async (t) => {
 	await fs.writeFile(testImagePath, testImageContent);
 
 	try {
-		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test-mermaid-0.png`);
-		
+		const response = await httpGet(
+			`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test-mermaid-0.png`,
+		);
+
 		t.is(response.status, 200);
 		t.is(response.headers['content-type'], IMAGE_CONSTANTS.MIME_TYPE);
 		t.is(response.body.length, testImageContent.length);
@@ -69,7 +71,7 @@ test('should return 404 for non-existent Mermaid image', async (t) => {
 	await serverService.start(config);
 
 	const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/non-existent.png`);
-	
+
 	t.is(response.status, 404);
 });
 
@@ -88,7 +90,7 @@ test('should handle Windows-style paths in image filenames', async (t) => {
 	try {
 		const imageName = 'mermaid-0-1234567890-abc123.png';
 		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/${imageName}`);
-		
+
 		t.is(response.status, 200);
 		t.is(response.headers['content-type'], IMAGE_CONSTANTS.MIME_TYPE);
 	} finally {
@@ -110,8 +112,10 @@ test('should handle special characters in image filenames', async (t) => {
 	await fs.writeFile(testImagePath, testImageContent);
 
 	try {
-		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/mermaid-0-test.png`);
-		
+		const response = await httpGet(
+			`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/mermaid-0-test.png`,
+		);
+
 		t.is(response.status, 200);
 	} finally {
 		await fs.unlink(testImagePath).catch(() => {});
@@ -128,7 +132,7 @@ test('should handle concurrent requests for Mermaid images', async (t) => {
 	const tempDir = join(tmpdir(), MERMAID_CONSTANTS.TEMP_DIR_NAME);
 	await fs.mkdir(tempDir, { recursive: true });
 	const imageFiles = [];
-	
+
 	for (let i = 0; i < 5; i++) {
 		const imagePath = join(tempDir, `mermaid-${i}.png`);
 		await fs.writeFile(imagePath, Buffer.from(`fake png content ${i}`));
@@ -136,20 +140,21 @@ test('should handle concurrent requests for Mermaid images', async (t) => {
 	}
 
 	try {
-		const requests = Array.from({ length: 5 }, (_, i) =>
+		const requests = Array.from({ length: 5 }, async (_, i) =>
 			httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/mermaid-${i}.png`),
 		);
 
 		const responses = await Promise.all(requests);
-		
-		responses.forEach((response, i) => {
+
+		for (const [i, response] of responses.entries()) {
 			t.is(response.status, 200, `Image ${i} should be served`);
 			t.is(response.headers['content-type'], IMAGE_CONSTANTS.MIME_TYPE);
-		});
+		}
 	} finally {
 		for (const file of imageFiles) {
 			await fs.unlink(file).catch(() => {});
 		}
+
 		await fs.rmdir(tempDir).catch(() => {});
 	}
 });
@@ -160,16 +165,12 @@ test('should handle path traversal attempts securely', async (t) => {
 	await serverService.start(config);
 
 	// Try path traversal attacks
-	const maliciousPaths = [
-		'../test.png',
-		'../../test.png',
-		'..\\test.png',
-		'..%2Ftest.png',
-		'%2E%2E%2Ftest.png',
-	];
+	const maliciousPaths = ['../test.png', '../../test.png', '..\\test.png', '..%2Ftest.png', '%2E%2E%2Ftest.png'];
 
 	for (const maliciousPath of maliciousPaths) {
-		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/${maliciousPath}`);
+		const response = await httpGet(
+			`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/${maliciousPath}`,
+		);
 		// Should return 404, not serve files outside temp directory
 		t.is(response.status, 404, `Path traversal attempt should fail: ${maliciousPath}`);
 	}
@@ -181,7 +182,7 @@ test('should handle empty filename', async (t) => {
 	await serverService.start(config);
 
 	const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/`);
-	
+
 	t.is(response.status, 404);
 });
 
@@ -192,7 +193,7 @@ test('should handle very long filenames', async (t) => {
 
 	const longName = 'mermaid-' + 'a'.repeat(200) + '.png';
 	const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/${longName}`);
-	
+
 	// Should handle gracefully (either 404 or serve if exists)
 	t.true([404, 200].includes(response.status));
 });
@@ -210,7 +211,7 @@ test('should set correct Content-Type header', async (t) => {
 
 	try {
 		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test.png`);
-		
+
 		t.is(response.status, 200);
 		t.is(response.headers['content-type'], IMAGE_CONSTANTS.MIME_TYPE);
 	} finally {
@@ -232,7 +233,7 @@ test('should set correct Content-Length header', async (t) => {
 
 	try {
 		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test.png`);
-		
+
 		t.is(response.status, 200);
 		const contentLength = response.headers['content-length'];
 		t.is(contentLength, testImageContent.length.toString());
@@ -257,7 +258,7 @@ test('should handle file deletion during request', async (t) => {
 		// Start request and delete file during request
 		const requestPromise = httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test.png`);
 		await fs.unlink(testImagePath);
-		
+
 		const response = await requestPromise;
 		// Should handle gracefully (either 404 or serve if cached)
 		t.true([404, 200].includes(response.status));
@@ -274,7 +275,7 @@ test('should handle temp directory not existing', async (t) => {
 
 	// Try to access image when temp directory doesn't exist
 	const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test.png`);
-	
+
 	t.is(response.status, 404);
 });
 
@@ -291,7 +292,7 @@ test('should handle non-PNG files in temp directory', async (t) => {
 	try {
 		// Should still try to serve (even if not PNG)
 		const response = await httpGet(`http://localhost:${config.port}/${MERMAID_CONSTANTS.TEMP_URL_PATH}/test.txt`);
-		
+
 		// Should return 200 but with wrong content type, or 404
 		t.true([200, 404].includes(response.status));
 	} finally {
@@ -299,4 +300,3 @@ test('should handle non-PNG files in temp directory', async (t) => {
 		await fs.rmdir(tempDir).catch(() => {});
 	}
 });
-

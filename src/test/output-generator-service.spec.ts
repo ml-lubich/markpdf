@@ -1,14 +1,14 @@
 /**
  * Tests for OutputGeneratorService
- * 
+ *
  * Tests PDF and HTML output generation.
  */
 
 import test from 'ava';
-import puppeteer, { Browser } from 'puppeteer';
-import { OutputGeneratorService } from '../lib/services/OutputGeneratorService';
-import { defaultConfig, PdfConfig, HtmlConfig } from '../lib/config';
-import { ServerService } from '../lib/services/ServerService';
+import puppeteer, { type Browser } from 'puppeteer';
+import { OutputGeneratorService } from '../lib/services/OutputGeneratorService.js';
+import { defaultConfig, type PdfConfig, type HtmlConfig } from '../lib/config.js';
+import { ServerService } from '../lib/services/ServerService.js';
 
 let browser: Browser;
 let serverService: ServerService;
@@ -201,4 +201,3 @@ test('generate should handle navigation timeout gracefully', async (t) => {
 		await serverService.stop();
 	}
 });
-

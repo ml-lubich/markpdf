@@ -3,13 +3,13 @@
  * Main conversion logic for markdown to PDF/HTML.
  */
 
-import { Browser } from 'puppeteer';
-import { Config } from '../config';
-import { createConverterService } from '../services/ConverterService';
-import { ConfigService } from '../services/ConfigService';
-import { getOutputFilePath } from '../utils/file';
+import { type Browser } from 'puppeteer';
+import { type Config } from '../config.js';
+import { createConverterService } from '../services/ConverterService.js';
+import { ConfigService } from '../services/ConfigService.js';
+import { getOutputFilePath } from '../utils/file.js';
 
-type CliArgs = typeof import('../../cli').cliFlags;
+type CliArguments = typeof import('../../cli').cliFlags;
 
 /**
  * Convert markdown content or file to PDF or HTML.
@@ -28,27 +28,27 @@ export const convertMdToPdf = async (
 	input: { path: string } | { content: string },
 	config: Config,
 	{
-		args = {} as CliArgs,
+		args: arguments_ = {} as CliArguments,
 		browser,
 	}: {
-		args?: CliArgs;
+		args?: CliArguments;
 		browser?: Browser;
 	} = {},
 ) => {
 	const configService = new ConfigService();
 
 	// Merge CLI args into config
-	let mergedConfig = configService.mergeCliArgs(config, args as any);
+	const mergedConfig = configService.mergeCliArgs(config, arguments_ as any);
 
 	// Handle md-file-encoding from CLI args
-	if (args['--md-file-encoding']) {
-		mergedConfig.md_file_encoding = args['--md-file-encoding'];
+	if (arguments_['--md-file-encoding']) {
+		mergedConfig.md_file_encoding = arguments_['--md-file-encoding'];
 	}
 
 	// Handle gray-matter-options from CLI args
-	if (args['--gray-matter-options']) {
+	if (arguments_['--gray-matter-options']) {
 		try {
-			mergedConfig.gray_matter_options = JSON.parse(args['--gray-matter-options']);
+			mergedConfig.gray_matter_options = JSON.parse(arguments_['--gray-matter-options']);
 		} catch {
 			// Ignore invalid JSON
 		}
@@ -63,4 +63,3 @@ export const convertMdToPdf = async (
 	const converter = createConverterService();
 	return converter.convert(input, mergedConfig, browser);
 };
-

@@ -4,7 +4,7 @@
  */
 
 import semver from 'semver';
-import { PackageJson } from '../../index';
+import { type PackageJson } from '../../index.js';
 
 const pkg: PackageJson = require('../../../package.json');
 
@@ -16,4 +16,3 @@ const pkg: PackageJson = require('../../../package.json');
 export const validateNodeVersion = (): boolean => {
 	return semver.satisfies(process.versions.node, pkg.engines.node);
 };
-

@@ -1,5 +1,5 @@
 import test from 'ava';
-import { help } from '../lib/help';
+import { help } from '../lib/help.js';
 
 test('help should output help text without throwing', (t) => {
 	// Capture console.log output
@@ -39,4 +39,3 @@ test('help should include common options', (t) => {
 		console.log = originalLog;
 	}
 });
-

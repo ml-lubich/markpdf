@@ -1,7 +1,7 @@
-import { GrayMatterOption } from 'gray-matter';
-import { marked } from 'marked';
-import { resolve } from 'path';
-import { FrameAddScriptTagOptions, launch, PDFOptions } from 'puppeteer';
+import { resolve } from 'node:path';
+import { type GrayMatterOption } from 'gray-matter';
+import { type marked } from 'marked';
+import { type FrameAddScriptTagOptions, type launch, type PDFOptions } from 'puppeteer';
 
 // Marked v4 types are in the marked namespace
 export type MarkedOptions = marked.MarkedOptions;
@@ -58,21 +58,21 @@ export const defaultConfig: Config = {
  */
 export type Config = PdfConfig | HtmlConfig;
 
-export interface PdfConfig extends BasicConfig {
+export type PdfConfig = {
 	/**
 	 * If true, output HTML instead of PDF.
 	 */
 	as_html: false;
-}
+} & BasicConfig;
 
-export interface HtmlConfig extends BasicConfig {
+export type HtmlConfig = {
 	/**
 	 * If true, output HTML instead of PDF.
 	 */
 	as_html: true;
-}
+} & BasicConfig;
 
-interface BasicConfig {
+type BasicConfig = {
 	/**
 	 * Base directory to be served by the file server.
 	 */
@@ -179,7 +179,6 @@ interface BasicConfig {
 	 * Port number for the HTTP server. Automatically assigned if not provided.
 	 */
 	port?: number;
-}
+};
 
 type PuppeteerLaunchOptions = Parameters<typeof launch>[0];
-

@@ -1,15 +1,15 @@
 /**
  * Tests for OutputGeneratorService - Timeout and Hanging Prevention
- * 
+ *
  * Tests edge cases and negative scenarios to ensure the service
  * doesn't hang and handles timeouts gracefully.
  */
 
 import test from 'ava';
-import puppeteer, { Browser, Page } from 'puppeteer';
-import { OutputGeneratorService } from '../lib/services/OutputGeneratorService';
-import { defaultConfig, PdfConfig } from '../lib/config';
-import { ServerService } from '../lib/services/ServerService';
+import puppeteer, { type Browser, Page } from 'puppeteer';
+import { OutputGeneratorService } from '../lib/services/OutputGeneratorService.js';
+import { defaultConfig, type PdfConfig } from '../lib/config.js';
+import { ServerService } from '../lib/services/ServerService.js';
 
 let browser: Browser;
 let serverService: ServerService;
@@ -40,7 +40,7 @@ test('should complete even when server is not started (no port)', async (t) => {
 test('should handle navigation timeout gracefully', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test</h1></body></html>';
-	const config: PdfConfig = { ...defaultConfig, port: 99999 }; // Invalid port
+	const config: PdfConfig = { ...defaultConfig, port: 99_999 }; // Invalid port
 
 	// Should not hang even with invalid port
 	const startTime = Date.now();
@@ -50,14 +50,14 @@ test('should handle navigation timeout gracefully', async (t) => {
 	t.truthy(result);
 	t.truthy(result!.content instanceof Buffer);
 	// Should complete quickly (within 10 seconds) even with timeout
-	t.true(duration < 10000, `Should complete in <10s, took ${duration}ms`);
+	t.true(duration < 10_000, `Should complete in <10s, took ${duration}ms`);
 	await service.closeBrowser();
 });
 
 test('should handle server connection failure without hanging', async (t) => {
 	const service = new OutputGeneratorService();
 	const html = '<html><body><h1>Test</h1></body></html>';
-	const config: PdfConfig = { ...defaultConfig, port: 65535 }; // Unlikely to be in use
+	const config: PdfConfig = { ...defaultConfig, port: 65_535 }; // Unlikely to be in use
 
 	// Should not hang when server is unreachable
 	const result = await service.generate(html, 'test.html', config, browser);
@@ -121,7 +121,7 @@ test('should handle empty HTML content', async (t) => {
 
 test('should handle very large HTML content', async (t) => {
 	const service = new OutputGeneratorService();
-	const largeContent = '<html><body>' + '<p>Test</p>'.repeat(10000) + '</body></html>';
+	const largeContent = '<html><body>' + '<p>Test</p>'.repeat(10_000) + '</body></html>';
 	const config: PdfConfig = { ...defaultConfig, port: 9013 };
 	await serverService.start(config);
 
@@ -133,7 +133,7 @@ test('should handle very large HTML content', async (t) => {
 		t.truthy(result);
 		t.truthy(result!.content instanceof Buffer);
 		// Should complete within reasonable time
-		t.true(duration < 30000, `Should complete in <30s, took ${duration}ms`);
+		t.true(duration < 30_000, `Should complete in <30s, took ${duration}ms`);
 	} finally {
 		await serverService.stop();
 	}
@@ -158,7 +158,7 @@ test('should handle invalid stylesheet URLs gracefully', async (t) => {
 		t.truthy(result);
 		t.truthy(result!.content instanceof Buffer);
 		// Should complete quickly despite invalid stylesheet
-		t.true(duration < 15000, `Should complete in <15s, took ${duration}ms`);
+		t.true(duration < 15_000, `Should complete in <15s, took ${duration}ms`);
 	} finally {
 		await serverService.stop();
 	}
@@ -183,7 +183,7 @@ test('should handle invalid script URLs gracefully', async (t) => {
 		t.truthy(result);
 		t.truthy(result!.content instanceof Buffer);
 		// Should complete quickly despite invalid script
-		t.true(duration < 15000, `Should complete in <15s, took ${duration}ms`);
+		t.true(duration < 15_000, `Should complete in <15s, took ${duration}ms`);
 	} finally {
 		await serverService.stop();
 	}
@@ -196,21 +196,20 @@ test('should handle multiple concurrent generations without hanging', async (t) 
 	await serverService.start(config);
 
 	try {
-		const promises = Array.from({ length: 5 }, () =>
-			service.generate(html, 'test.html', config, browser),
-		);
+		const promises = Array.from({ length: 5 }, async () => service.generate(html, 'test.html', config, browser));
 
 		const startTime = Date.now();
 		const results = await Promise.all(promises);
 		const duration = Date.now() - startTime;
 
 		t.is(results.length, 5);
-		results.forEach((result) => {
+		for (const result of results) {
 			t.truthy(result);
 			t.truthy(result!.content instanceof Buffer);
-		});
+		}
+
 		// Should complete all within reasonable time
-		t.true(duration < 30000, `Should complete all in <30s, took ${duration}ms`);
+		t.true(duration < 30_000, `Should complete all in <30s, took ${duration}ms`);
 	} finally {
 		await serverService.stop();
 	}
@@ -238,15 +237,15 @@ test('should not hang when browser is closed externally', async (t) => {
 	const config: PdfConfig = { ...defaultConfig, port: 9018 };
 	await serverService.start(config);
 
-	const tempBrowser = await puppeteer.launch({ headless: true });
+	const temporaryBrowser = await puppeteer.launch({ headless: true });
 
 	try {
 		// Close browser before generation completes
-		const generationPromise = service.generate(html, 'test.html', config, tempBrowser);
-		
+		const generationPromise = service.generate(html, 'test.html', config, temporaryBrowser);
+
 		// Wait a bit then close browser
 		await new Promise((resolve) => setTimeout(resolve, 100));
-		await tempBrowser.close();
+		await temporaryBrowser.close();
 
 		// Should handle error gracefully
 		await t.throwsAsync(async () => {
@@ -300,4 +299,3 @@ test('should complete quickly without waiting for network idle', async (t) => {
 		await serverService.stop();
 	}
 });
-

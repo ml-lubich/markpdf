@@ -1,12 +1,12 @@
 /**
  * Tests for Hash Utilities
- * 
+ *
  * Tests content-based hashing for Mermaid charts to ensure uniqueness
  * and prevent conflicts in parallel processing scenarios.
  */
 
 import test from 'ava';
-import { generateContentHash, generateMermaidFilename } from '../lib/utils/hash';
+import { generateContentHash, generateMermaidFilename } from '../lib/utils/hash.js';
 
 test('generateContentHash should produce same hash for identical content', (t) => {
 	const content = 'graph TD\n    A --> B';
@@ -54,7 +54,7 @@ test('generateContentHash should respect custom length', (t) => {
 
 	t.is(hash8.length, 8);
 	t.is(hash32.length, 32);
-	t.is(hash32.substring(0, 8), hash8);
+	t.is(hash32.slice(0, 8), hash8);
 });
 
 test('generateContentHash should cap length at 64', (t) => {
@@ -107,4 +107,3 @@ test('generateMermaidFilename should produce different filenames for different c
 
 	t.not(filename1, filename2);
 });
-
