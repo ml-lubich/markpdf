@@ -31,6 +31,7 @@ const helpText = `
     --page-media-type ${chalk.dim('........')} Media type to emulate the page with (default: screen)
     --highlight-style ${chalk.dim('........')} Style to be used by highlight.js (default: github)
     --marked-options ${chalk.dim('.........')} Set custom options for marked (as a JSON string)
+    --html-pdf-options ${chalk.dim('........')} Set custom options for HTML to PDF conversion (as a JSON string)
     --pdf-options ${chalk.dim('............')} Set custom options for the generated PDF (as a JSON string)
     --launch-options ${chalk.dim('.........')} Set custom launch options for Puppeteer
 		--gray-matter-options ${chalk.dim('....')} Set custom options for gray-matter

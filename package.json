@@ -28,7 +28,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "tsc -p tsconfig.build.json --watch",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
     "clean": "rm -rf dist",
     "prepack": "npm run clean && npm run build",
     "lint": "xo",

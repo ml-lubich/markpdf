@@ -44,7 +44,7 @@ Detailed usage instructions covering:
 
 ### 🏗️ Architecture & Design
 
-#### [Architecture Documentation](./architecture.md)
+#### [Architecture Documentation](./ARCHITECTURE.md)
 
 Comprehensive overview of the markpdf architecture, including:
 - Architecture principles and design goals
@@ -58,7 +58,7 @@ Comprehensive overview of the markpdf architecture, including:
 
 **Read this first** to understand how the system is organized and how components interact.
 
-### [System Design Documentation](./system-design.md)
+### [System Design Documentation](./SYSTEM-DESIGN.md)
 
 Detailed system design documentation covering:
 - Design goals and principles
@@ -76,7 +76,7 @@ Detailed system design documentation covering:
 
 **Read this** to understand the design decisions and patterns used throughout the codebase.
 
-### [CLI Interface Documentation](./cli-interface.md)
+### [CLI Interface Documentation](./CLI-INTERFACE.md)
 
 Complete CLI interface reference including:
 - Command syntax and usage
@@ -105,15 +105,15 @@ Comprehensive test coverage documentation including:
 
 ### For Developers
 
-- **Architecture**: Start with [architecture.md](./architecture.md) to understand the overall system
-- **Design Patterns**: See [system-design.md](./system-design.md) for design decisions
+- **Architecture**: Start with [ARCHITECTURE.md](./ARCHITECTURE.md) to understand the overall system
+- **Design Patterns**: See [SYSTEM-DESIGN.md](./SYSTEM-DESIGN.md) for design decisions
 - **Code Style**: See `.cursorrules` in the root directory for coding guidelines
 
 ### For Users
 
-- **CLI Usage**: See [cli-interface.md](./cli-interface.md) for command-line usage
+- **CLI Usage**: See [CLI-INTERFACE.md](./CLI-INTERFACE.md) for command-line usage
 - **Examples**: Check the main [README.md](../README.md) for quick examples
-- **Configuration**: See [cli-interface.md](./cli-interface.md#configuration-options) for configuration options
+- **Configuration**: See [CLI-INTERFACE.md](./CLI-INTERFACE.md#configuration-options) for configuration options
 
 ## Documentation Conventions
 
