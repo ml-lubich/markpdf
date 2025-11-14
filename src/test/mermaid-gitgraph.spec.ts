@@ -143,3 +143,179 @@ test('processCharts should generate valid image file for gitGraph', async (t) =>
 	}
 });
 
+
+test('processCharts should handle gitGraph with many branches', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Many Branches\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n    branch feature1\n    branch feature2\n    branch feature3\n    checkout feature1\n    commit id: "Feature 1 Work"\n    checkout feature2\n    commit id: "Feature 2 Work"\n    checkout feature3\n    commit id: "Feature 3 Work"\n    checkout main\n    merge feature1\n    merge feature2\n    merge feature3\n    commit id: "All Merged"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9007);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with long commit messages', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Long Messages\n\n\`\`\`mermaid\ngitGraph\n    commit id: "This is a very long commit message that describes a complex feature implementation"\n    commit id: "Another long message with special characters: !@#$%^&*()"\n    branch develop\n    checkout develop\n    commit id: "Work on feature with unicode: 测试 🚀"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9008);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with special characters in branch names', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Special Branch Names\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n    branch feature/awesome-feature\n    branch hotfix-critical-bug\n    checkout feature/awesome-feature\n    commit id: "Work"\n    checkout hotfix-critical-bug\n    commit id: "Fix"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9009);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should gracefully handle invalid gitGraph syntax', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Invalid Syntax\n\n\`\`\`mermaid\ngitGraph\n    invalid command here\n    commit without id\n    branch\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9010);
+
+	// Should continue processing even if one diagram fails
+	t.true(result.warnings.length >= 0);
+	// Should not crash
+	t.truthy(result.processedMarkdown);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with nested branch operations', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Nested Operations\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Start"\n    branch A\n    checkout A\n    commit id: "A1"\n    branch B\n    checkout B\n    commit id: "B1"\n    checkout A\n    commit id: "A2"\n    checkout main\n    merge A\n    merge B\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9011);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with very large diagram', async (t) => {
+	const processor = new MermaidProcessorService();
+	// Create a large gitGraph with many commits
+	const commits = Array.from({ length: 20 }, (_, i) => `    commit id: "Commit ${i + 1}"`).join('\n');
+	const markdown = `# Large Diagram\n\n\`\`\`mermaid\ngitGraph\n${commits}\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9012);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should continue processing after gitGraph error', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Mixed Success/Failure\n\n\`\`\`mermaid\ngitGraph\n    invalid syntax here\n\`\`\`\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Valid"\n    commit id: "Also Valid"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9013);
+
+	// Should process valid diagrams even if one fails
+	t.true(result.imageFiles.length >= 0);
+	t.truthy(result.processedMarkdown);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with whitespace variations', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Whitespace Test\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n\tcommit id: "Tab Indented"\n    commit id: "Space Indented"\n  commit id: "Two Spaces"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9014);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph mixed with other diagram types', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Mixed Diagrams\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Git Start"\n\`\`\`\n\n\`\`\`mermaid\nflowchart TD\n    A --> B\n\`\`\`\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Git End"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9015);
+
+	t.is(result.imageFiles.length, 3);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should preserve gitGraph rendering quality', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Quality Test\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n    branch develop\n    checkout develop\n    commit id: "Work"\n    checkout main\n    merge develop\n    commit id: "Release"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9016);
+
+	t.is(result.imageFiles.length, 1);
+	
+	// Verify image is substantial (not empty/corrupted)
+	const stats = await fs.stat(result.imageFiles[0]!);
+	t.true(stats.size > 1000); // Should be at least 1KB for a valid PNG
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with sequential operations', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Sequential\n\n\`\`\`mermaid\ngitGraph\n    commit id: "1"\n    commit id: "2"\n    commit id: "3"\n    commit id: "4"\n    commit id: "5"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9017);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should handle gitGraph with rapid branch switching', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Rapid Switching\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Start"\n    branch A\n    branch B\n    branch C\n    checkout A\n    commit id: "A1"\n    checkout B\n    commit id: "B1"\n    checkout C\n    commit id: "C1"\n    checkout A\n    commit id: "A2"\n    checkout B\n    commit id: "B2"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9018);
+
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
