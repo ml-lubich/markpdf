@@ -55,6 +55,8 @@ async function main() {
 
 	try {
 		await cliService.run(cliFlags, defaultConfig);
+		// Ensure process exits after completion
+		process.exit(0);
 	} catch (error) {
 		// Format error message for user
 		const errorMessage = error instanceof Error ? error.message : String(error);

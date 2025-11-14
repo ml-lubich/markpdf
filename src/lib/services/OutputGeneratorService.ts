@@ -52,9 +52,19 @@ export class OutputGeneratorService implements IOutputGenerator {
 	 */
 	public async closeBrowser(): Promise<void> {
 		if (this.browserInstance) {
-			await this.browserInstance.close();
-			this.browserInstance = undefined;
-			this.browserPromise = undefined;
+			try {
+				await Promise.race([
+					this.browserInstance.close(),
+					new Promise<void>((resolve) => {
+						setTimeout(() => resolve(), 2000); // 2s timeout
+					}),
+				]);
+			} catch (error) {
+				// Ignore close errors
+			} finally {
+				this.browserInstance = undefined;
+				this.browserPromise = undefined;
+			}
 		}
 	}
 

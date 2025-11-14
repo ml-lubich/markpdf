@@ -79,18 +79,35 @@ export class CliService {
 
 		// Setup cleanup
 		const cleanup = async () => {
-			await this.outputGenerator.closeBrowser();
-			await this.serverService.stop();
+			try {
+				await this.outputGenerator.closeBrowser();
+			} catch (error) {
+				// Ignore browser cleanup errors
+			}
+			try {
+				await this.serverService.stop();
+			} catch (error) {
+				// Ignore server cleanup errors
+			}
 		};
 
 		try {
 			// Process stdin or files
-			await (stdin
-				? this.processStdin(stdin, mergedConfig, arguments_)
-				: this.processFiles(files, mergedConfig, arguments_, cleanup));
+			if (stdin) {
+				await this.processStdin(stdin, mergedConfig, arguments_);
+			} else {
+				await this.processFiles(files, mergedConfig, arguments_, cleanup);
+				// Cleanup is handled in processFiles finally block for files
+				return;
+			}
 		} catch (error) {
 			await cleanup();
 			throw error;
+		} finally {
+			// Always cleanup after stdin processing (not handled in processStdin)
+			if (stdin) {
+				await cleanup();
+			}
 		}
 	}
 

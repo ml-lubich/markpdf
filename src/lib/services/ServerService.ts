@@ -90,24 +90,28 @@ export class ServerService implements IServerService {
 			return;
 		}
 
-		await new Promise<void>((resolve) => {
-			if (!this.server) {
-				resolve();
-				return;
-			}
-
-			this.server.close(() => {
-				resolve();
-			});
-
-			// Force close after timeout
-			setTimeout(() => {
-				resolve();
-			}, 1000);
-		});
-
+		const serverToClose = this.server;
 		this.server = undefined;
 		this.port = undefined;
+
+		await new Promise<void>((resolve) => {
+			let resolved = false;
+			const doResolve = () => {
+				if (!resolved) {
+					resolved = true;
+					resolve();
+				}
+			};
+
+			serverToClose.close(() => {
+				doResolve();
+			});
+
+			// Force close after timeout to prevent hanging
+			setTimeout(() => {
+				doResolve();
+			}, 500);
+		});
 	}
 
 	/**
