@@ -8,12 +8,12 @@ export type MarkedOptions = marked.MarkedOptions;
 export type MarkedExtension = any;
 
 // Resolve markdown.css path - works in both source and compiled code
-// In compiled: dist/lib/config -> dist -> .. -> markdown.css (root)
+// In compiled: dist/lib/config -> dist -> .. -> assets/css/markdown.css (root)
 // __dirname in compiled code is dist/lib/config
-// We need: dist/lib/config -> dist/lib -> dist -> .. -> markdown.css
+// We need: dist/lib/config -> dist/lib -> dist -> .. -> assets/css/markdown.css
 const getMarkdownCssPath = (): string => {
-	// Go up from dist/lib/config to dist, then up to root, then markdown.css
-	return resolve(__dirname, '..', '..', '..', 'markdown.css');
+	// Go up from dist/lib/config to dist, then up to root, then assets/css/markdown.css
+	return resolve(__dirname, '..', '..', '..', 'assets', 'css', 'markdown.css');
 };
 
 export const defaultConfig: Config = {
