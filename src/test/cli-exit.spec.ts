@@ -32,7 +32,10 @@ async function cleanupTempFile(filePath: string): Promise<void> {
 	}
 }
 
-test('CliService should cleanup browser and server after file processing', async (t) => {
+const longTest = test;
+longTest.timeout(30000);
+
+longTest('CliService should cleanup browser and server after file processing', async (t) => {
 	const cliService = new CliService();
 	const outputGenerator = (cliService as any).outputGenerator as OutputGeneratorService;
 	const serverService = (cliService as any).serverService as ServerService;
@@ -61,33 +64,22 @@ test('CliService should cleanup browser and server after file processing', async
 		await cleanupTempFile(testFile);
 		await cleanupTempFile(outputFile).catch(() => {});
 	}
-}).timeout(30000);
+});
 
-test('CliService should cleanup browser and server after stdin processing', async (t) => {
+test('CliService cleanup method should work correctly', async (t) => {
 	const cliService = new CliService();
 	const outputGenerator = (cliService as any).outputGenerator as OutputGeneratorService;
 	const serverService = (cliService as any).serverService as ServerService;
-	
-	// Mock stdin
-	const originalStdin = process.stdin;
-	const mockStdin = {
-		isTTY: false,
-		read: () => '# Test\n\nThis is stdin.',
-	} as any;
 
-	try {
-		// Note: This test might not work perfectly due to getStdin implementation
-		// But we can at least test the cleanup logic path
+	// Test that cleanup can be called even when nothing is initialized
+	await t.notThrowsAsync(async () => {
 		await cliService.cleanup();
+	});
 
-		// Verify cleanup works
-		t.is(outputGenerator['browserInstance'], undefined);
-		t.is(serverService['server'], undefined);
-	} catch (error) {
-		// If stdin test fails, at least cleanup should work
-		await cliService.cleanup();
-		t.pass('Cleanup works');
-	}
+	// Verify cleanup works
+	t.is(outputGenerator['browserInstance'], undefined);
+	t.is(outputGenerator['browserPromise'], undefined);
+	t.is(serverService['server'], undefined);
 });
 
 test('CliService cleanup should handle errors gracefully', async (t) => {
@@ -104,12 +96,14 @@ test('CliService cleanup should handle errors gracefully', async (t) => {
 
 	// Create a server that will fail to close
 	serverService['server'] = {
-		close: (callback: () => void) => {
-			setTimeout(() => callback(), 100);
+		close: (callback?: () => void) => {
+			if (callback) {
+				setTimeout(() => callback(), 100);
+			}
 		},
-		closeAllConnections: () => {
+		closeAllConnections: (() => {
 			throw new Error('Close connections failed');
-		},
+		}) as (() => void) | undefined,
 	} as any;
 
 	// Cleanup should not throw
@@ -149,7 +143,7 @@ test('ServerService.stop should timeout and resolve after 200ms if close hangs',
 	const originalServer = serverService['server']!;
 	const hangingServer = {
 		...originalServer,
-		close: (callback?: () => void) => {
+		close: (_callback?: () => void) => {
 			// Never call callback - simulate hanging
 			// callback is optional in Node.js Server.close()
 		},
@@ -175,7 +169,7 @@ test('OutputGeneratorService.closeBrowser should close browser and clear state',
 	} as any;
 
 	outputGenerator['browserInstance'] = mockBrowser;
-	outputGenerator['browserPromise'] = Promise.resolve(mockBrowser);
+	outputGenerator['browserPromise'] = Promise.resolve(mockBrowser) as Promise<any>;
 
 	await t.notThrowsAsync(async () => {
 		await outputGenerator.closeBrowser();
@@ -224,7 +218,10 @@ test('OutputGeneratorService.closeBrowser should handle errors gracefully', asyn
 	t.is(outputGenerator['browserInstance'], undefined);
 });
 
-test('CLI process should exit after file conversion (integration test)', async (t) => {
+const integrationTest = test;
+integrationTest.timeout(35000);
+
+integrationTest('CLI process should exit after file conversion (integration test)', async (t) => {
 	const testFile = await createTempMarkdown('# Test\n\nThis is a test.');
 	const outputFile = testFile.replace('.md', '.pdf');
 
@@ -260,9 +257,9 @@ test('CLI process should exit after file conversion (integration test)', async (
 		await cleanupTempFile(testFile);
 		await cleanupTempFile(outputFile).catch(() => {});
 	}
-}).timeout(35000);
+});
 
-test('CLI process should exit after stdin conversion (integration test)', async (t) => {
+integrationTest('CLI process should exit after stdin conversion (integration test)', async (t) => {
 	await new Promise<void>((resolve, reject) => {
 		const proc = spawn('node', ['dist/cli.js'], {
 			stdio: ['pipe', 'pipe', 'pipe'],
@@ -294,9 +291,12 @@ test('CLI process should exit after stdin conversion (integration test)', async 
 	});
 
 	t.pass('Process exited successfully after stdin processing');
-}).timeout(35000);
+});
 
-test('CLI should not cleanup in watch mode', async (t) => {
+const watchTest = test;
+watchTest.timeout(5000);
+
+watchTest('CLI should not cleanup in watch mode', async (t) => {
 	const testFile = await createTempMarkdown('# Test\n\nThis is a test.');
 
 	try {
@@ -304,7 +304,9 @@ test('CLI should not cleanup in watch mode', async (t) => {
 		const serverService = (cliService as any).serverService as ServerService;
 
 		// Start processing in watch mode (will hang, so we'll cancel it)
-		const processPromise = cliService.run({ _: [testFile], '--watch': true } as any, defaultConfig);
+		cliService.run({ _: [testFile], '--watch': true } as any, defaultConfig).catch(() => {
+			// Ignore errors
+		});
 
 		// Wait a bit to ensure it started
 		await new Promise(resolve => setTimeout(resolve, 1000));
@@ -321,7 +323,7 @@ test('CLI should not cleanup in watch mode', async (t) => {
 	} finally {
 		await cleanupTempFile(testFile);
 	}
-}).timeout(5000);
+});
 
 test('CliService should cleanup on error', async (t) => {
 	const cliService = new CliService();
@@ -343,4 +345,3 @@ test('CliService should cleanup on error', async (t) => {
 	t.is(outputGenerator['browserInstance'], undefined);
 	t.is(serverService['server'], undefined);
 });
-
