@@ -55,13 +55,17 @@ async function main() {
 
 	try {
 		await cliService.run(cliFlags, defaultConfig);
-		// Ensure process exits after completion
-		process.exit(0);
 	} catch (error) {
 		// Format error message for user
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		console.error(`\n${chalk.red('✖ Error:')} ${errorMessage}\n`);
-		process.exit(1);
+		process.exitCode = 1;
+	} finally {
+		// Force exit after a short delay to ensure cleanup completes
+		// Use setImmediate to allow cleanup to finish
+		setImmediate(() => {
+			process.exit(process.exitCode || 0);
+		});
 	}
 }
 
