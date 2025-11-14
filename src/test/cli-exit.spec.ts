@@ -75,7 +75,7 @@ test('CliService cleanup method should work correctly', async (t) => {
 
 	// Verify cleanup works
 	t.is(outputGenerator['browserInstance'], undefined);
-	t.is(outputGenerator['browserPromise'], undefined);
+	t.is(outputGenerator['browserPromise'] as any, undefined);
 	t.is(serverService['server'], undefined);
 });
 
@@ -166,14 +166,14 @@ test('OutputGeneratorService.closeBrowser should close browser and clear state',
 	} as any;
 
 	outputGenerator['browserInstance'] = mockBrowser;
-	outputGenerator['browserPromise'] = Promise.resolve(mockBrowser) as Promise<any>;
+	outputGenerator['browserPromise'] = Promise.resolve(mockBrowser) as any;
 
 	await t.notThrowsAsync(async () => {
 		await outputGenerator.closeBrowser();
 	});
 
 	t.is(outputGenerator['browserInstance'], undefined);
-	t.is(outputGenerator['browserPromise'], undefined);
+	t.is(outputGenerator['browserPromise'] as any, undefined);
 });
 
 test('OutputGeneratorService.closeBrowser should timeout after 2s if close hangs', async (t) => {
@@ -253,7 +253,7 @@ test('CLI process should exit after file conversion (integration test)', async (
 	}
 });
 
-integrationTest('CLI process should exit after stdin conversion (integration test)', async (t) => {
+test('CLI process should exit after stdin conversion (integration test)', async (t) => {
 	await new Promise<void>((resolve, reject) => {
 		const proc = spawn('node', ['dist/cli.js'], {
 			stdio: ['pipe', 'pipe', 'pipe'],
