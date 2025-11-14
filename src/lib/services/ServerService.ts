@@ -9,7 +9,7 @@ import { createReadStream, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import serveHandler from 'serve-handler';
-import { type IServerService } from '../interfaces.js';
+import { type IServerService } from '../interfaces/index.js';
 import { type Config } from '../config.js';
 import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../config/constants.js';
 

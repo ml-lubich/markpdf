@@ -16,7 +16,7 @@ import {
 	type IOutputGenerator,
 	type IFileService,
 	type IConfigService,
-} from '../interfaces.js';
+} from '../interfaces/index.js';
 import { type Config } from '../config.js';
 import { getHtml } from '../get-html.js';
 import { getOutputFilePath } from '../get-output-file-path.js';
@@ -167,7 +167,7 @@ export class ConverterService {
 		// Clean up Mermaid image files after PDF generation
 		// Images are already embedded in the PDF/HTML, so we can safely remove temp files
 		if (mermaidImageFiles.length > 0) {
-			await this.mermaidProcessor.cleanup(mermaidImageFiles).catch((error) => {
+			await this.mermaidProcessor.cleanup(mermaidImageFiles).catch((error: unknown) => {
 				// Log but don't fail if cleanup fails
 				this.logger.warn(
 					`Failed to clean up some Mermaid images: ${error instanceof Error ? error.message : String(error)}`,

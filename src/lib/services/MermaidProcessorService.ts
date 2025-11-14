@@ -7,7 +7,7 @@ import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { type Browser, type Page } from 'puppeteer';
-import { type IMermaidProcessor, type MermaidProcessResult } from '../interfaces.js';
+import { type IMermaidProcessor, type MermaidProcessResult } from '../interfaces/index.js';
 import { MERMAID_CONSTANTS, IMAGE_CONSTANTS } from '../config/constants.js';
 import { generateContentHash } from '../utils/hash.js';
 

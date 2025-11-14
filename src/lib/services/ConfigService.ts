@@ -3,7 +3,7 @@
  * Handles default config, front-matter, CLI args, and config files.
  */
 
-import { type IConfigService } from '../interfaces.js';
+import { type IConfigService } from '../interfaces/index.js';
 import { type Config, defaultConfig } from '../config.js';
 import { getMarginObject } from '../utils/pdf.js';
 

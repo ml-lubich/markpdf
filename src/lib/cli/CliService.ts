@@ -9,7 +9,7 @@ import { watch } from 'chokidar';
 import getPort from 'get-port';
 import getStdin from 'get-stdin';
 import Listr from 'listr';
-import { type PackageJson } from '../index.js';
+import { type PackageJson } from '../../index.js';
 import { type Config, defaultConfig } from '../config.js';
 import { convertMdToPdf } from '../core/converter.js';
 import { ConfigService } from '../services/ConfigService.js';
@@ -17,8 +17,7 @@ import { ServerService } from '../services/ServerService.js';
 import { OutputGeneratorService } from '../services/OutputGeneratorService.js';
 import { validateNodeVersion } from '../validators/node-version.js';
 import { help } from './help.js';
-// Chokidar v4 doesn't export WatchOptions, use any for now
-type WatchOptions = any;
+// Chokidar v4 doesn't export WatchOptions - types handled inline
 
 export type CliArgs = typeof import('../../cli').cliFlags;
 

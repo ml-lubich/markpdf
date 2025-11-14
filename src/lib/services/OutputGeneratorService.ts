@@ -9,7 +9,7 @@ import {
 	type ConversionOutput,
 	type PdfConversionOutput,
 	type HtmlConversionOutput,
-} from '../interfaces.js';
+} from '../interfaces/index.js';
 import { type Config, type HtmlConfig } from '../config.js';
 import { isHttpUrl } from '../utils/url.js';
 

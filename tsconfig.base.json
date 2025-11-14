@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"target": "es2017",
 		"module": "commonjs",
+		"moduleResolution": "node",
 		"lib": ["dom", "esnext"],
 		"declaration": true,
 		"outDir": "dist",
@@ -14,6 +15,7 @@
 		"noUncheckedIndexedAccess": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true
 	}
 }

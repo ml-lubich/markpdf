@@ -8,10 +8,10 @@
 // Legacy function exports for backward compatibility
 import type { Browser } from 'puppeteer';
 import { MermaidProcessorService } from './services/MermaidProcessorService.js';
-import type { MermaidProcessResult } from './interfaces.js';
+import type { MermaidProcessResult } from './interfaces/index.js';
 
 export { MermaidProcessorService } from './services/MermaidProcessorService.js';
-export type { MermaidProcessResult } from './interfaces.js';
+export type { MermaidProcessResult } from './interfaces/index.js';
 
 const processor = new MermaidProcessorService();
 

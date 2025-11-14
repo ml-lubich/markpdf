@@ -5,7 +5,7 @@
 
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import { type IMarkdownParser } from '../interfaces.js';
+import { type IMarkdownParser } from '../interfaces/index.js';
 import { type MarkedOptions } from '../config.js';
 
 export class MarkdownParserService implements IMarkdownParser {

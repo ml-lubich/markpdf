@@ -6,7 +6,7 @@
 import { promises as fs } from 'node:fs';
 import { dirname } from 'node:path';
 import iconv from 'iconv-lite';
-import { type IFileService } from '../interfaces.js';
+import { type IFileService } from '../interfaces/index.js';
 
 export class FileService implements IFileService {
 	/**
