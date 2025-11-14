@@ -128,7 +128,7 @@ pie title Programming Languages Usage
 A Git graph showing branch structure:
 
 ```mermaid
-gitgraph
+gitGraph
     commit id: "Initial"
     commit id: "Feature A"
     branch develop

@@ -144,7 +144,7 @@ pie title Programming Languages Usage
 Version control visualization:
 
 ```mermaid
-gitgraph
+gitGraph
     commit id: "Initial"
     commit id: "Feature A"
     branch develop

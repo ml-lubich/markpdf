@@ -164,3 +164,35 @@ test('processCharts should handle markdown with only regular code blocks', async
 	t.is(result.imageFiles.length, 0);
 	t.is(result.warnings.length, 0);
 });
+
+test('processCharts should process gitGraph diagram with capital G (Mermaid 10.x syntax)', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Git Graph Test\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n    commit id: "Feature A"\n    branch develop\n    checkout develop\n    commit id: "Dev Work 1"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9010);
+
+	t.not(result.processedMarkdown, markdown);
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+	t.true(result.processedMarkdown.includes('mermaid-chart-container'));
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
+
+test('processCharts should process complex gitGraph with branches and merges', async (t) => {
+	const processor = new MermaidProcessorService();
+	const markdown = `# Complex Git Graph\n\n\`\`\`mermaid\ngitGraph\n    commit id: "Initial"\n    commit id: "Feature A"\n    branch develop\n    checkout develop\n    commit id: "Dev Work 1"\n    commit id: "Dev Work 2"\n    checkout main\n    commit id: "Hotfix"\n    checkout develop\n    commit id: "Dev Work 3"\n    checkout main\n    merge develop\n    commit id: "Release"\n\`\`\`\n\nDone.`;
+	const result = await processor.processCharts(markdown, browser, process.cwd(), undefined, 9011);
+
+	t.not(result.processedMarkdown, markdown);
+	t.is(result.imageFiles.length, 1);
+	t.is(result.warnings.length, 0);
+	t.true(result.processedMarkdown.includes('mermaid-chart-container'));
+
+	// Cleanup
+	for (const imageFile of result.imageFiles) {
+		await fs.unlink(imageFile).catch(() => {});
+	}
+});
