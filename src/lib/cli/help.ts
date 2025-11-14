@@ -15,7 +15,7 @@ const helpText = `
 ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═════╝ ╚═╝     
                                                            
 `)}
-  ${chalk.bold('$ mdpdf')} [options] path/to/file.md
+  ${chalk.bold('$ markpdf')} [options] path/to/file.md
 
   ${chalk.dim.underline.bold('Options:')}
 
@@ -45,31 +45,31 @@ const helpText = `
 
   ${chalk.gray('–')} Convert ./file.md and save to ./file.pdf
 
-    ${chalk.cyan('$ mdpdf file.md')}
+    ${chalk.cyan('$ markpdf file.md')}
 
   ${chalk.gray('–')} Convert all markdown files in current directory
 
-    ${chalk.cyan('$ mdpdf ./*.md')}
+    ${chalk.cyan('$ markpdf ./*.md')}
 
   ${chalk.gray('–')} Convert all markdown files in current directory recursively
 
-    ${chalk.cyan('$ mdpdf ./**/*.md')}
+    ${chalk.cyan('$ markpdf ./**/*.md')}
 
   ${chalk.gray('–')} Convert and enable watch mode
 
-    ${chalk.cyan('$ mdpdf ./*.md -w')}
+    ${chalk.cyan('$ markpdf ./*.md -w')}
 
   ${chalk.gray('–')} Convert and enable watch mode with custom options
 
-    ${chalk.cyan('$ mdpdf ./*.md --watch --watch-options \'{ "atomic": true }\'')}
+    ${chalk.cyan('$ markpdf ./*.md --watch --watch-options \'{ "atomic": true }\'')}
 
   ${chalk.gray('–')} Convert path/to/file.md with a different base directory
 
-    ${chalk.cyan('$ mdpdf path/to/file.md --basedir path')}
+    ${chalk.cyan('$ markpdf path/to/file.md --basedir path')}
 
   ${chalk.gray('–')} Convert file.md using custom-markdown.css
 
-    ${chalk.cyan('$ mdpdf file.md --stylesheet custom-markdown.css')}
+    ${chalk.cyan('$ markpdf file.md --stylesheet custom-markdown.css')}
 
   ${chalk.gray('–')} Convert file.md using the Monokai theme for code highlighting
 
