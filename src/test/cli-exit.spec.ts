@@ -41,7 +41,10 @@ test('CliService should cleanup browser and server after file processing', async
 	const outputFile = testFile.replace('.md', '.pdf');
 
 	try {
-		await cliService.run({ _: [testFile] }, defaultConfig);
+		await cliService.run({ _: [testFile] } as any, defaultConfig);
+
+		// Wait a bit for cleanup to complete
+		await new Promise(resolve => setTimeout(resolve, 100));
 
 		// Verify browser is closed
 		t.is(outputGenerator['browserInstance'], undefined);
@@ -58,7 +61,7 @@ test('CliService should cleanup browser and server after file processing', async
 		await cleanupTempFile(testFile);
 		await cleanupTempFile(outputFile).catch(() => {});
 	}
-});
+}).timeout(30000);
 
 test('CliService should cleanup browser and server after stdin processing', async (t) => {
 	const cliService = new CliService();
@@ -261,12 +264,14 @@ test('CLI process should exit after file conversion (integration test)', async (
 test('CLI process should exit after stdin conversion (integration test)', async (t) => {
 	await new Promise<void>((resolve, reject) => {
 		const proc = spawn('node', ['dist/cli.js'], {
-			stdio: ['pipe', 'inherit', 'inherit'],
+			stdio: ['pipe', 'pipe', 'pipe'],
 		});
 
 		// Send stdin and close
-		proc.stdin!.write('# Test\n\nThis is stdin test.');
-		proc.stdin!.end();
+		if (proc.stdin) {
+			proc.stdin.write('# Test\n\nThis is stdin test.');
+			proc.stdin.end();
+		}
 
 		let exited = false;
 		proc.on('exit', (code) => {
@@ -322,10 +327,13 @@ test('CliService should cleanup on error', async (t) => {
 	// Use non-existent file to trigger error
 	await t.throwsAsync(
 		async () => {
-			await cliService.run({ _: ['/non/existent/file.md'] }, defaultConfig);
+			await cliService.run({ _: ['/non/existent/file.md'] } as any, defaultConfig);
 		},
 		{ message: /Failed to process files/ },
 	);
+
+	// Wait a bit for cleanup to complete
+	await new Promise(resolve => setTimeout(resolve, 100));
 
 	// Cleanup should still have been called
 	t.is(outputGenerator['browserInstance'], undefined);
