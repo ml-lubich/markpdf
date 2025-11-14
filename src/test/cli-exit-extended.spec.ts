@@ -13,7 +13,6 @@ import { CliService } from '../lib/cli/CliService.js';
 import { OutputGeneratorService } from '../lib/services/OutputGeneratorService.js';
 import { ServerService } from '../lib/services/ServerService.js';
 import { defaultConfig } from '../lib/config.js';
-import puppeteer, { type Browser } from 'puppeteer';
 
 // Helper to create a temporary markdown file
 async function createTempMarkdown(content: string, filename?: string): Promise<string> {
